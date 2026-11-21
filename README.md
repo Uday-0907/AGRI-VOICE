@@ -1,0 +1,156 @@
+# AgriVoice
+
+> **AI-Powered, Multilingual, Voice-First Agricultural Assistance Platform**
+
+---
+
+## 1. Project Overview & Mission
+
+AgriVoice is designed as an accessible, reliable, and evidence-grounded agricultural assistance platform built specifically for real Indian farmers.
+
+The central concept enables a farmer to dial a universal virtual phone number or access a mobile-responsive web portal in their preferred regional language. AgriVoice understands regional dialects and contexts, verifies local meteorological and soil health conditions, provides transparent Mandi and Minimum Support Price (MSP) information, matches farmers with equipment rentals and buyers, and synthesizes peer-reviewed agricultural extension research.
+
+---
+
+## 2. Six Core Pillars
+
+1. **Hyper-Local Climate Resilience & Crop Advisory:** Micro-climate forecasts, extreme weather warnings, and crop-stage preventive guidance.
+2. **Precision Soil Health & Input Verification:** Soil Health Card (SHC) interpretation, balanced NPK recommendations, and retailer verification.
+3. **Fair Market Access, MSP & Direct Buyer Connectivity:** Transparent market rates, MSP data, and privacy-preserving buyer matching.
+4. **Farm Machinery Rental & Operator Integration:** Discovery and booking of tractors, harvesters, and implements with location-based proximity.
+5. **Institutional Financial Inclusion & Agricultural Extension:** Welfare scheme discovery (PM-KISAN, PMFBY), Kisan Credit Card guidance, and KVK scientist escalation.
+6. **Comprehensive Agricultural & Aquacultural Research Hub:** Evidence-backed research synthesis across agriculture, aquaculture, horticulture, and allied rural livelihood domains.
+
+---
+
+## 3. Approved Architecture
+
+- **Frontend (`frontend/`):** React 19, TypeScript, Vite, Tailwind CSS. Responsive web application with modular feature views.
+- **Main Backend (`backend/api/`):** Node.js (>=20), Fastify, TypeScript. Central API gateway, Phone + OTP authentication, profile management, business transactions, database persistence, and external integrations.
+- **AI Service (`backend/ai/`):** Python 3.12, FastAPI, LangGraph workflows, intent routing, and evidence-grounded research pipeline.
+- **Data Layer (`backend/database/`):** PostgreSQL 16 with PostGIS spatial extension for proximity calculations.
+- **Infrastructure (`infrastructure/`):** Docker & Docker Compose for isolated multi-service development.
+
+---
+
+## 4. Repository Structure
+
+```text
+AGRI-VOICE/
+├── frontend/               # React 19 + TypeScript + Vite web client
+│   ├── public/
+│   ├── src/
+│   │   ├── app/            # Routes, layouts, providers
+│   │   ├── components/     # UI primitives and shared components
+│   │   ├── features/       # Modular features (auth, weather, soil, markets, etc.)
+│   │   ├── services/       # Centralized API client
+│   │   ├── hooks/
+│   │   ├── types/
+│   │   ├── utils/
+│   │   └── styles/
+│   ├── package.json
+│   └── vite.config.ts
+│
+├── backend/
+│   ├── api/                # Fastify Node.js Application Backend
+│   │   ├── src/
+│   │   │   ├── app.ts
+│   │   │   ├── server.ts
+│   │   │   ├── config/
+│   │   │   ├── plugins/
+│   │   │   ├── common/     # Errors, validation, auth, utils
+│   │   │   ├── modules/    # Domain modules (farmers, weather, markets, etc.)
+│   │   │   └── integrations/ # Telephony, SMS, weather APIs
+│   │   ├── tests/
+│   │   └── package.json
+│   │
+│   ├── ai/                 # Python 3.12 FastAPI AI Service
+│   │   ├── app/
+│   │   │   ├── main.py
+│   │   │   ├── config.py
+│   │   │   ├── api/
+│   │   │   ├── core/
+│   │   │   ├── workflows/  # LangGraph state machine routers
+│   │   │   ├── domains/    # Agricultural advisory domain handlers
+│   │   │   ├── research_pipeline/ # Shared RAG pipeline (sources, ingestion, retrieval)
+│   │   │   ├── tools/
+│   │   │   ├── schemas/
+│   │   │   └── services/
+│   │   ├── tests/
+│   │   ├── requirements.txt
+│   │   └── pyproject.toml
+│   │
+│   └── database/           # PostgreSQL + PostGIS Schemas & Migrations
+│       ├── migrations/
+│       ├── schema/
+│       ├── seeds/
+│       └── README.md
+│
+├── docs/                   # Architecture, Development Plans, API Specs
+│   ├── architecture/       # Detailed system architecture and decisions
+│   ├── development-plan/   # Team workflow, checklists, roadmaps
+│   ├── api/
+│   ├── research/
+│   ├── testing/
+│   └── decisions/
+│
+├── infrastructure/         # Docker Compose and container configs
+│   └── docker/
+│
+├── tests/                  # Cross-cutting end-to-end integration tests
+│   └── integration/
+│
+├── scripts/                # Development, setup, and maintenance scripts
+├── docker-compose.yml      # Local container orchestration (Postgres/PostGIS)
+├── .env.example            # Sanitized environment template
+├── .gitignore              # Ignore rules for secrets, builds, dependencies
+├── README.md               # Project guide and constitution
+└── LICENSE                 # Project licensing terms
+```
+
+---
+
+## 5. Prerequisites & Environment Setup
+
+### Prerequisites
+- **Node.js:** `>= 20.x` (Recommended: v24 LTS)
+- **Python:** `3.12.x` (Ensure `py -3.12` or `python3.12` is accessible)
+- **Docker & Docker Compose:** Docker Desktop with WSL2 backend enabled
+- **Git:** Standard git client
+
+### Local Setup
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Uday-0907/AGRI-VOICE.git
+   cd AGRI-VOICE
+   ```
+
+2. **Configure Environment Variables:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your local development parameters
+   ```
+
+3. **Start Local Database:**
+   ```bash
+   docker compose up -d postgres
+   ```
+
+---
+
+## 6. Team Collaboration Workflow
+
+AgriVoice is built by a four-member development team adhering to structured GitHub branching and Pull Request reviews:
+
+- `main` branch is protected and contains only reviewed, working code.
+- Each member works exclusively in their own feature branch (`feature/member2-research-ui`, `feature/member3-weather-ui`, `feature/member4-institutions-ui`).
+- For complete guidelines on branch naming, code reviews, and commit standards, refer to:  
+  [docs/development-plan/TEAM_WORKFLOW.md](docs/development-plan/TEAM_WORKFLOW.md).
+
+---
+
+## 7. Current Project Status
+
+> [!NOTE]
+> **Status:** Phase 0 (Project Restructuring, Repository Governance & Team Setup) is **completed**.  
+> The updated project architecture and team governance are finalized. Feature implementation has not yet started.

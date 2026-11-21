@@ -1,0 +1,2 @@
+# AgriVoice AI Service Dependencies (Python 3.12)
+# Core dependencies will be pinned in subsequent development milestones.

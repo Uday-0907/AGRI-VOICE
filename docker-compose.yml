@@ -1,0 +1,63 @@
+# ==============================================================================
+# AgriVoice - Docker Compose Local Development Orchestration
+# Note: Initial setup. Application services will be activated in later phases.
+# ==============================================================================
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: agrivoice-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-agrivoice}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-agrivoice}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # backend-api:
+  #   build:
+  #     context: ./backend/api
+  #     dockerfile: ../../infrastructure/docker/api/Dockerfile
+  #   container_name: agrivoice-api
+  #   restart: unless-stopped
+  #   ports:
+  #     - "4000:4000"
+  #   environment:
+  #     - NODE_ENV=development
+  #     - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-agrivoice}
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+
+  # backend-ai:
+  #   build:
+  #     context: ./backend/ai
+  #     dockerfile: ../../infrastructure/docker/ai/Dockerfile
+  #   container_name: agrivoice-ai
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     - ENVIRONMENT=development
+
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: ../infrastructure/docker/frontend/Dockerfile
+  #   container_name: agrivoice-frontend
+  #   restart: unless-stopped
+  #   ports:
+  #     - "5173:5173"
+
+volumes:
+  postgres_data:
