@@ -118,6 +118,11 @@ AGRI-VOICE/
 - **Docker & Docker Compose:** Docker Desktop with WSL2 backend enabled
 - **Git:** Standard git client
 
+> [!IMPORTANT]
+> **Implementation Note on Application Services:**  
+> Application services (`frontend/`, `backend/api/`, and `backend/ai/`) are structural skeletons in Phase 0. Their service builds in `docker-compose.yml` are commented out until their respective implementation phases.  
+> At this stage, **only the local PostgreSQL + PostGIS database container** is runnable.
+
 ### Local Setup
 1. **Clone the repository:**
    ```bash
@@ -128,10 +133,10 @@ AGRI-VOICE/
 2. **Configure Environment Variables:**
    ```bash
    cp .env.example .env
-   # Edit .env with your local development parameters
+   # Review .env; the default credentials are for local development only
    ```
 
-3. **Start Local Database:**
+3. **Start Local Database (Only container active in Phase 0):**
    ```bash
    docker compose up -d postgres
    ```
@@ -142,8 +147,8 @@ AGRI-VOICE/
 
 AgriVoice is built by a four-member development team adhering to structured GitHub branching and Pull Request reviews:
 
-- `main` branch is protected and contains only reviewed, working code.
-- Each member works exclusively in their own feature branch (`feature/member2-research-ui`, `feature/member3-weather-ui`, `feature/member4-institutions-ui`).
+- **Branch Protection Policy:** Branch protection rules on `main` are **pending manual configuration by the Project Owner** in GitHub repository settings (to enforce Pull Request reviews and prevent direct pushes). By team policy, no member pushes feature work directly to `main`.
+- **Isolated Feature Branches:** Each member works exclusively in their assigned feature branch (`feature/member2-research-ui`, `feature/member3-weather-ui`, `feature/member4-institutions-ui`).
 - For complete guidelines on branch naming, code reviews, and commit standards, refer to:  
   [docs/development-plan/TEAM_WORKFLOW.md](docs/development-plan/TEAM_WORKFLOW.md).
 

@@ -17,7 +17,7 @@ This document governs code collaboration, repository hygiene, and feature branch
 
 ## 2. Core Git Collaboration Principles
 
-1. **`main` Branch Protection:** The `main` branch represents deployable, stable code. No team member pushes feature work directly to `main`.
+1. **`main` Branch Protection Policy:** The `main` branch represents deployable, stable code. While GitHub branch protection rules are pending manual configuration by the Project Owner in repository settings, all team members are strictly required by team policy never to push feature work directly to `main`.
 2. **Authentic Commits Only:** Every team member must make genuine commits from their own local workstation using their configured Git identity. No commits on behalf of others; no artificial contribution padding.
 3. **Isolated Feature Branches:** Each member develops exclusively in dedicated feature branches branched off latest `main`.
 4. **Small, Atomic Pull Requests:** Keep Pull Requests focused on assigned module boundaries to minimize merge conflicts.

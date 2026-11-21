@@ -1,6 +1,12 @@
 # ==============================================================================
 # AgriVoice - Docker Compose Local Development Orchestration
-# Note: Initial setup. Application services will be activated in later phases.
+#
+# SECURITY NOTICE:
+# - The default credentials below (e.g. postgres/postgres) are strictly for LOCAL
+#   DEVELOPMENT ONLY on an isolated developer workstation.
+# - NEVER expose these default ports or credentials to a public network or production.
+# - Application services (api, ai, frontend) are commented out as skeletons;
+#   they will be activated in subsequent implementation phases.
 # ==============================================================================
 
 version: '3.8'
@@ -11,6 +17,7 @@ services:
     container_name: agrivoice-postgres
     restart: unless-stopped
     environment:
+      # [LOCAL-DEVELOPMENT-ONLY DEFAULTS] Override via .env or environment in production
       POSTGRES_DB: ${POSTGRES_DB:-agrivoice}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}

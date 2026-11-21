@@ -24,6 +24,11 @@ This checklist tracks the implementation and verification status of **Phase 0: P
   - [x] `.gitignore` comprehensive coverage of node_modules, .venv, caches, logs, and secrets.
   - [x] `.env.example` free of real credentials.
   - [x] Local `.env` preserved locally and untracked.
+- [x] **Governance & Protection Clarity:**
+  - [x] Accurately document that GitHub `main` branch protection is pending manual configuration by the project owner.
+  - [x] Cleanly remove 6 redundant parent `.gitkeep` files while preserving all 74 leaf directory `.gitkeep` placeholders.
+  - [x] Explicitly label all default credentials and secrets in `.env.example` and `docker-compose.yml` as local-development-only.
+  - [x] Clarify in `README.md` that application service containers are not yet runnable until feature phases.
 - [x] **Git & Remote Verification:**
   - [x] Remote `origin` verified (`https://github.com/Uday-0907/AGRI-VOICE.git`).
   - [x] Clean working tree inspected with `git status`.
