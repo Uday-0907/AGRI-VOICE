@@ -74,6 +74,12 @@ The system is organized into three decoupled primary tiers and an authoritative 
   - Farmer, buyer, operator, and administrative dashboards.
   - Form validation, client-side state, accessibility, and visual feedback (loading, error, empty states).
   - Centralized API communication through typed service clients.
+- **Team Feature Module Ownership (Five-Member Team):**
+  - **Member 2:** Comprehensive Agriculture Research & Extension UI (`frontend/src/features/research/`)
+  - **Member 3:** Weather & Crop Advisory UI (`frontend/src/features/weather/`)
+  - **Member 4:** Institutions & Financial Inclusion UI (`frontend/src/features/institutions/`)
+  - **Member 5:** Soil Health & Input Verification UI (`frontend/src/features/soil/`)
+  - **Project Lead (Member 1):** Shared UI components (`frontend/src/components/ui/`, `frontend/src/components/shared/`), router, layouts, context providers, and centralized API client.
 - **Security Boundary:** The client is untrusted. All business rules and authorization must be validated server-side.
 
 ### 3.2 Main Application Backend (`backend/api/`)

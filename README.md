@@ -119,9 +119,11 @@ AGRI-VOICE/
 - **Git:** Standard git client
 
 > [!IMPORTANT]
-> **Implementation Note on Application Services:**  
-> Application services (`frontend/`, `backend/api/`, and `backend/ai/`) are structural skeletons in Phase 0. Their service builds in `docker-compose.yml` are commented out until their respective implementation phases.  
-> At this stage, **only the local PostgreSQL + PostGIS database container** is runnable.
+> **Component Readiness & Service Status in Phase 0:**
+> - **Configured & Active Infrastructure:** Only the **PostgreSQL 16 + PostGIS** database container (`docker compose up -d postgres`) is configured and runnable at this stage.
+> - **Scaffolded Skeletons (Not yet runnable):** Application code in `frontend/`, `backend/api/`, and `backend/ai/` consists strictly of directory scaffolding, configuration schemas, and type placeholders. Their service blocks in `docker-compose.yml` are deliberately commented out.
+> - **Later Implementation Phases:** Application business logic, Fastify API endpoints, React views, AI LangGraph workflows, and Dockerfile container definitions will be built in subsequent milestones.
+> - **Excluded Infrastructure:** Redis remains deliberately excluded from the initial architecture.
 
 ### Local Setup
 1. **Clone the repository:**
@@ -145,11 +147,16 @@ AGRI-VOICE/
 
 ## 6. Team Collaboration Workflow
 
-AgriVoice is built by a four-member development team adhering to structured GitHub branching and Pull Request reviews:
+AgriVoice is built by a **five-member development team** adhering to structured GitHub branching, strict module boundaries, and Pull Request reviews:
 
-- **Branch Protection Policy:** Branch protection rules on `main` are **pending manual configuration by the Project Owner** in GitHub repository settings (to enforce Pull Request reviews and prevent direct pushes). By team policy, no member pushes feature work directly to `main`.
-- **Isolated Feature Branches:** Each member works exclusively in their assigned feature branch (`feature/member2-research-ui`, `feature/member3-weather-ui`, `feature/member4-institutions-ui`).
-- For complete guidelines on branch naming, code reviews, and commit standards, refer to:  
+- **Branch Protection Notice:** **Main branch protection is pending manual configuration by the repository owner.** While GitHub branch protection rules have not yet been manually enabled in repository settings, all team members are strictly required by team policy never to push feature code directly to `main`.
+- **Team Ownership & Feature Branches:**
+  - **Member 1 (Project Lead):** Core architecture, backend foundation, database architecture/implementation, authentication & authorization, AI architecture & workflows, core integrations, security, system integration, code reviews and merging, deployment.
+  - **Member 2 (Moderate availability):** Comprehensive Agriculture Research & Extension UI (`frontend/src/features/research/`) -> `feature/member2-research-ui`
+  - **Member 3 (Limited availability):** Weather & Crop Advisory UI (`frontend/src/features/weather/`) -> `feature/member3-weather-ui`
+  - **Member 4 (Limited availability):** Institutions & Financial Inclusion UI (`frontend/src/features/institutions/`) -> `feature/member4-institutions-ui`
+  - **Member 5 (Newly added member):** Soil & Input Verification UI (`frontend/src/features/soil/`) -> `feature/member5-soil-ui`
+- For complete operational guidelines on branch naming, commits, pull requests, and code reviews, refer to:  
   [docs/development-plan/TEAM_WORKFLOW.md](docs/development-plan/TEAM_WORKFLOW.md).
 
 ---

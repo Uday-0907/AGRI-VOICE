@@ -18,14 +18,15 @@ This checklist tracks the implementation and verification status of **Phase 0: P
 - [x] **Documentation Creation:**
   - [x] `README.md` (Mission, architecture, prerequisites, setup, team workflow, status).
   - [x] `docs/architecture/PROJECT_ARCHITECTURE.md` (6 pillars, service boundaries, Phone+OTP decision, research pipeline).
-  - [x] `docs/development-plan/TEAM_WORKFLOW.md` (4-member team setup, branch naming, PR workflow, attribution).
+  - [x] `docs/development-plan/TEAM_WORKFLOW.md` (5-member team setup with 4 isolated feature UI modules, branch naming, PR workflow, attribution).
   - [x] `docs/development-plan/PHASE_0_CHECKLIST.md` (This document).
 - [x] **Security & Environment Protection:**
   - [x] `.gitignore` comprehensive coverage of node_modules, .venv, caches, logs, and secrets.
   - [x] `.env.example` free of real credentials.
   - [x] Local `.env` preserved locally and untracked.
 - [x] **Governance & Protection Clarity:**
-  - [x] Accurately document that GitHub `main` branch protection is pending manual configuration by the project owner.
+  - [x] Accurately document that GitHub `main` branch protection is pending manual configuration by the repository owner.
+  - [x] Document 5-member team roles and 4 isolated frontend UI modules (Research, Weather, Institutions, Soil).
   - [x] Cleanly remove 6 redundant parent `.gitkeep` files while preserving all 74 leaf directory `.gitkeep` placeholders.
   - [x] Explicitly label all default credentials and secrets in `.env.example` and `docker-compose.yml` as local-development-only.
   - [x] Clarify in `README.md` that application service containers are not yet runnable until feature phases.
