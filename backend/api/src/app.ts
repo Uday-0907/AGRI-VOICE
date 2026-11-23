@@ -1,12 +1,21 @@
+import fastify from 'fastify';
+
 /**
  * AgriVoice Application Backend
- * App initialization placeholder. Core plugins, routes, and error handlers will be wired in future milestones.
+ * Core application initialization with Fastify.
  */
-
 export async function buildApp() {
-  // Placeholder application factory
-  return {
-    status: 'initialized',
-    message: 'AgriVoice server application placeholder'
-  };
+  const app = fastify({
+    logger: {
+      level: 'info',
+    },
+  });
+
+  // TODO: Register core plugins (auth, db, telemetry)
+
+  app.get('/health', async () => {
+    return { status: 'ok', timestamp: new Date().toISOString() };
+  });
+
+  return app;
 }
