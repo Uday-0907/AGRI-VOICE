@@ -1,5 +1,28 @@
 import { Type } from '@sinclair/typebox';
 
+// --- Shared API Responses ---
+export const ApiResponseSchema = <T extends import('@sinclair/typebox').TSchema>(data: T) =>
+  Type.Object({
+    data: data,
+    meta: Type.Optional(Type.Object({
+      pagination: Type.Optional(Type.Object({
+        limit: Type.Integer(),
+        offset: Type.Integer(),
+        total: Type.Integer(),
+      })),
+      timestamp: Type.String({ format: 'date-time' }),
+    })),
+  });
+
+export const ApiErrorSchema = Type.Object({
+  error: Type.Object({
+    statusCode: Type.Integer(),
+    error: Type.String(),
+    message: Type.String(),
+    code: Type.Optional(Type.String()),
+  }),
+});
+
 // --- Identity ---
 export const UserRegistrationSchema = Type.Object({
   phone: Type.String({ pattern: '^\\+[1-9][0-9]{7,14}$' }), // E.164 normalized
