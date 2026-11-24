@@ -9,6 +9,8 @@ import dbPlugin from './plugins/db.js';
 import registryPlugin from './plugins/module-registry.js';
 import contextPlugin from './plugins/context.js';
 import { soilModule } from './modules/soil/index.js';
+import { weatherModule } from './modules/weather/index.js';
+import { stopScheduler } from './config/scheduler.js';
 
 export async function buildApp() {
   const app = fastify({
@@ -66,6 +68,7 @@ export async function buildApp() {
 
   // Pillar Modules
   app.registerPillar(soilModule);
+  app.registerPillar(weatherModule);
 
   // Public Health Endpoint
   app.get('/health', {
@@ -84,6 +87,11 @@ export async function buildApp() {
       },
     },
   }, async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
+
+  // Lifecycle hooks
+  app.addHook('onClose', async () => {
+    await stopScheduler();
+  });
 
   return app;
 }

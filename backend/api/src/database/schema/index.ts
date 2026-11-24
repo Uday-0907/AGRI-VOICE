@@ -5,3 +5,4 @@ export * from './farms.js';
 export * from './crops.js';
 export * from './outbox.js';
 export * from './soil.js';
+export * from './weather.js';
