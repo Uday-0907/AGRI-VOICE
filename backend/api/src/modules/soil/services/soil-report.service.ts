@@ -229,14 +229,27 @@ export class SoilReportService {
     }
 
     if (req.fieldId) {
+      const fieldConditions = [
+        eq(fields.id, req.fieldId),
+        eq(farms.farmerId, farmerId),
+      ];
+      if (req.farmId) {
+        fieldConditions.push(eq(fields.farmId, req.farmId));
+      }
+
       const [field] = await db
-        .select({ fieldId: fields.id })
+        .select({ fieldId: fields.id, farmId: fields.farmId })
         .from(fields)
         .innerJoin(farms, eq(fields.farmId, farms.id))
-        .where(and(eq(fields.id, req.fieldId), eq(farms.farmerId, farmerId)))
+        .where(and(...fieldConditions))
         .limit(1);
+
       if (!field) {
-        throw new ForbiddenError(`Field ${req.fieldId} does not belong to a farm owned by the authenticated farmer.`);
+        throw new ForbiddenError(
+          req.farmId
+            ? `Field ${req.fieldId} does not belong to farm ${req.farmId} owned by the authenticated farmer.`
+            : `Field ${req.fieldId} does not belong to a farm owned by the authenticated farmer.`
+        );
       }
     }
 

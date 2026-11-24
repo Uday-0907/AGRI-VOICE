@@ -4,7 +4,7 @@ import { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
 
 export default fp(async (fastify: FastifyInstance) => {
   fastify.register(fastifyJwt, {
-    secret: process.env.JWT_SECRET || 'dev-secret-only',
+    secret: process.env.JWT_SECRET || process.env.APP_SECRET || 'dev-secret-only',
   });
 
   fastify.decorate('authenticate', async (request: FastifyRequest, reply: FastifyReply) => {

@@ -41,9 +41,18 @@ export async function assertFarmOwnership(userId: string, farmId: string) {
 
 /**
  * Validates that a field belongs to a farm owned by the authenticated user's farmer profile.
+ * If expectedFarmId is provided, also enforces that the field belongs to that specific farm.
  */
-export async function assertFieldOwnership(userId: string, fieldId: string) {
+export async function assertFieldOwnership(userId: string, fieldId: string, expectedFarmId?: string) {
   const profile = await assertFarmerContext(userId);
+
+  const conditions = [
+    eq(fields.id, fieldId),
+    eq(farms.farmerId, profile.id),
+  ];
+  if (expectedFarmId) {
+    conditions.push(eq(fields.farmId, expectedFarmId));
+  }
 
   const [result] = await db
     .select({
@@ -52,11 +61,15 @@ export async function assertFieldOwnership(userId: string, fieldId: string) {
     })
     .from(fields)
     .innerJoin(farms, eq(fields.farmId, farms.id))
-    .where(and(eq(fields.id, fieldId), eq(farms.farmerId, profile.id)))
+    .where(and(...conditions))
     .limit(1);
 
   if (!result) {
-    throw new NotFoundError('Field not found or access denied');
+    throw new NotFoundError(
+      expectedFarmId
+        ? `Field not found or does not belong to farm ${expectedFarmId}`
+        : 'Field not found or access denied'
+    );
   }
 
   return { field: result.field, farm: result.farm, profile };

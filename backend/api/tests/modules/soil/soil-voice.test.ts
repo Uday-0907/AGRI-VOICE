@@ -109,30 +109,94 @@ describe('SoilVoiceService — Phone & Voice AI Integration', () => {
     expect(result.aiGuidance).toContain('Do not invent fertilizer doses');
   });
 
-  it('should verify agricultural inputs and provide neutral plain-text findings for phone calls', async () => {
+  it('should format demo agricultural input verification safely without official claims', async () => {
     vi.spyOn(inputService, 'verifyAndSave').mockResolvedValue({
       id: 'v0000000-0000-0000-0000-000000000001',
       farmerId: mockFarmerProfile.id,
-      productName: 'Gromor Urea',
+      productName: 'DemoBio Complex NPK',
       category: 'fertilizer',
-      brand: 'Gromor',
-      batchNumber: 'BATCH-123',
-      registrationNumber: 'FCO-AP-2023',
-      verificationStatus: 'verified',
+      brand: 'DemoBio',
+      batchNumber: 'DEMO-FERT-NPK-001',
+      registrationNumber: 'DEMO-REG-FCO-001',
+      verificationStatus: 'demo',
       provider: 'demo_input_registry',
+      evidence: {
+        isDemo: true,
+        simulatedScenario: 'registered_sample',
+      },
       createdAt: new Date().toISOString(),
     });
 
     const result = await voiceService.verifyInputForVoice('u0000000-0000-0000-0000-000000000001', {
-      productName: 'Gromor Urea',
+      productName: 'DemoBio Complex NPK',
       category: 'fertilizer',
-      batchNumber: 'BATCH-123',
+      batchNumber: 'DEMO-FERT-NPK-001',
+      providerMode: 'demo',
+    });
+
+    // Invariant: Demo verification CANNOT certify authentic real-world registration
+    expect(result.isAuthentic).toBe(false);
+    expect(result.status).toBe('demo');
+    expect(result.findingsSummary).toContain('DEMONSTRATION NOTICE');
+    expect(result.findingsSummary).toContain('not an official government verification');
+    expect(result.findingsSummary).not.toContain('officially registered and active');
+    expect(result.aiGuidance).toContain('Grounding Constraints: This is demonstration sample data');
+  });
+
+  it('should format official verified input verification when backed by genuine registry', async () => {
+    vi.spyOn(inputService, 'verifyAndSave').mockResolvedValue({
+      id: 'v0000000-0000-0000-0000-000000000002',
+      farmerId: mockFarmerProfile.id,
+      productName: 'Certified BioFertilizer',
+      category: 'fertilizer',
+      brand: 'CertifiedBio',
+      batchNumber: 'LIVE-REG-BATCH-99',
+      registrationNumber: 'FCO-LIVE-2026-99',
+      verificationStatus: 'verified',
+      provider: 'cibrc_national_registry',
+      createdAt: new Date().toISOString(),
+    });
+
+    const result = await voiceService.verifyInputForVoice('u0000000-0000-0000-0000-000000000001', {
+      productName: 'Certified BioFertilizer',
+      category: 'fertilizer',
+      batchNumber: 'LIVE-REG-BATCH-99',
+      providerMode: 'official',
     });
 
     expect(result.isAuthentic).toBe(true);
     expect(result.status).toBe('verified');
     expect(result.findingsSummary).toContain('officially registered and active');
-    expect(result.aiGuidance).toContain('Do not make unverified accusations');
+  });
+
+  it('should format demo simulated recall alert without issuing fake official warnings', async () => {
+    vi.spyOn(inputService, 'verifyAndSave').mockResolvedValue({
+      id: 'v0000000-0000-0000-0000-000000000003',
+      farmerId: mockFarmerProfile.id,
+      productName: 'DemoShield Plant Protectant',
+      category: 'pesticide',
+      batchNumber: 'DEMO-RECALL-ALERT-004',
+      verificationStatus: 'demo',
+      provider: 'demo_input_registry',
+      evidence: {
+        isDemo: true,
+        simulatedScenario: 'simulated_recall_alert',
+      },
+      createdAt: new Date().toISOString(),
+    });
+
+    const result = await voiceService.verifyInputForVoice('u0000000-0000-0000-0000-000000000001', {
+      productName: 'DemoShield Plant Protectant',
+      category: 'pesticide',
+      batchNumber: 'DEMO-RECALL-ALERT-004',
+      providerMode: 'demo',
+    });
+
+    expect(result.isAuthentic).toBe(false);
+    expect(result.status).toBe('demo');
+    expect(result.findingsSummary).toContain('DEMONSTRATION NOTICE');
+    expect(result.findingsSummary).toContain('simulated safety advisory test scenario');
+    expect(result.findingsSummary).not.toContain('OFFICIAL WARNING');
   });
 
   it('should fail closed when caller session has no active farmer profile', async () => {

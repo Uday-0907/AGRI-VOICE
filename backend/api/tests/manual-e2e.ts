@@ -24,7 +24,9 @@ async function runManualE2E() {
   const userAId = 'a0000000-0000-0000-0000-000000000001';
   const farmerAProfileId = 'a1111111-1111-1111-1111-111111111111';
   const farmAId = 'af000000-0000-0000-0000-000000000001';
+  const farmA2Id = 'af000000-0000-0000-0000-000000000003'; // Farmer A's second farm
   const fieldAId = 'af111111-1111-1111-1111-111111111111';
+  const fieldA2Id = 'af111111-1111-1111-1111-111111111113'; // Field belonging to Farm A2
 
   const userBId = 'b0000000-0000-0000-0000-000000000002';
   const farmerBProfileId = 'b1111111-1111-1111-1111-111111111111';
@@ -36,8 +38,8 @@ async function runManualE2E() {
     console.log('[Setup] Seeding test accounts into PostgreSQL...');
     await db.delete(soilReports).where(or(eq(soilReports.farmerId, farmerAProfileId), eq(soilReports.farmerId, farmerBProfileId)));
     await db.delete(inputVerifications).where(or(eq(inputVerifications.farmerId, farmerAProfileId), eq(inputVerifications.farmerId, farmerBProfileId)));
-    await db.delete(fields).where(or(eq(fields.id, fieldAId), eq(fields.id, fieldBId)));
-    await db.delete(farms).where(or(eq(farms.id, farmAId), eq(farms.id, farmBId)));
+    await db.delete(fields).where(or(eq(fields.id, fieldAId), eq(fields.id, fieldA2Id), eq(fields.id, fieldBId)));
+    await db.delete(farms).where(or(eq(farms.id, farmAId), eq(farms.id, farmA2Id), eq(farms.id, farmBId)));
     await db.delete(farmerProfiles).where(or(eq(farmerProfiles.id, farmerAProfileId), eq(farmerProfiles.id, farmerBProfileId)));
     await db.delete(users).where(or(eq(users.id, userAId), eq(users.id, userBId)));
 
@@ -73,16 +75,18 @@ async function runManualE2E() {
       },
     ]);
 
-    // Insert Farms
+    // Insert Farms (Farmer A has two distinct farms)
     await db.insert(farms).values([
-      { id: farmAId, farmerId: farmerAProfileId, farmName: 'Ramesh Farm A', ownershipType: 'owned' },
+      { id: farmAId, farmerId: farmerAProfileId, farmName: 'Ramesh Farm A-Main', ownershipType: 'owned' },
+      { id: farmA2Id, farmerId: farmerAProfileId, farmName: 'Ramesh Farm A-Secondary', ownershipType: 'owned' },
       { id: farmBId, farmerId: farmerBProfileId, farmName: 'Suresh Farm B', ownershipType: 'owned' },
     ]);
 
-    // Insert Fields
+    // Insert Fields (fieldA belongs to farmA; fieldA2 belongs to farmA2)
     await db.insert(fields).values([
       { id: fieldAId, farmId: farmAId, fieldName: 'Ramesh North Plot' },
-      { id: fieldBId, farmId: farmBId, fieldName: 'Suresh South Plot' },
+      { id: fieldA2Id, farmId: farmA2Id, fieldName: 'Ramesh South Plot' },
+      { id: fieldBId, farmId: farmBId, fieldName: 'Suresh East Plot' },
     ]);
 
     console.log('[Setup] Test accounts seeded successfully.');
@@ -174,45 +178,64 @@ async function runManualE2E() {
     console.log('8. POST /soil/lookup with Farm B ID: HTTP', badLookup.statusCode, '(Expected 403 Forbidden)');
     if (badLookup.statusCode !== 403) throw new Error('Cross-farmer farm association was not rejected');
 
+    // 9. Test Same-Farmer Different-Farm Field Mismatch (Field A2 belongs to Farm A2, not Farm A)
+    const fieldMismatchLookup = await app.inject({
+      method: 'POST',
+      url: '/soil/lookup',
+      headers: { authorization: `Bearer ${tokenA}` },
+      payload: {
+        cardId: 'SHC-AP-GNT-2026',
+        farmId: farmAId, // Farm A
+        fieldId: fieldA2Id, // Field belonging to Farm A2!
+        providerMode: 'demo',
+      },
+    });
+    console.log('9. POST /soil/lookup with Farm A + Field A2 mismatch: HTTP', fieldMismatchLookup.statusCode, '(Expected 403 Forbidden)');
+    if (fieldMismatchLookup.statusCode !== 403) throw new Error('Same-farmer field-farm mismatch was not rejected');
+
     // ========================================================================
     // MANUAL TEST B — Agricultural Input Verification Workflow
     // ========================================================================
     console.log('\n--- MANUAL TEST B: Input Verification Workflow ---');
 
-    // 1. Submit input verification (Certified Seed)
+    // 1. Submit input verification (Demo Hybrid Cotton Seed Reference Fixture)
     const verifySeed = await app.inject({
       method: 'POST',
       url: '/soil/inputs/verify',
       headers: { authorization: `Bearer ${tokenA}` },
       payload: {
-        productName: 'Cotton Hybrid Seed Jaadoo BG-II',
+        productName: 'DemoHybrid Cotton Seed',
         category: 'seed',
-        batchNumber: 'KAVERI-JAADOO-SEED',
+        batchNumber: 'DEMO-SEED-HYB-002',
         providerMode: 'demo',
       },
     });
-    console.log('1. POST /soil/inputs/verify (Certified Seed): HTTP', verifySeed.statusCode);
+    console.log('1. POST /soil/inputs/verify (Demo Seed Fixture): HTTP', verifySeed.statusCode);
     const verifySeedBody = JSON.parse(verifySeed.body);
-    console.log('   -> Status:', verifySeedBody.data.verificationStatus, '| Provider:', verifySeedBody.data.provider);
-    if (verifySeed.statusCode !== 201 || verifySeedBody.data.verificationStatus !== 'verified') throw new Error('Seed verification failed');
+    console.log('   -> Status:', verifySeedBody.data.verificationStatus, '| Provider:', verifySeedBody.data.provider, '| isDemo:', verifySeedBody.data.evidence?.isDemo);
+    if (verifySeed.statusCode !== 201 || verifySeedBody.data.verificationStatus !== 'demo' || verifySeedBody.data.evidence?.isDemo !== true) {
+      throw new Error('Demo seed verification failed safety assertion');
+    }
     const verificationId = verifySeedBody.data.id;
 
-    // 2. Submit Vigilance Recall Alert Test Sample
+    // 2. Submit Demo Vigilance Recall Alert Simulated Scenario
     const verifyAlert = await app.inject({
       method: 'POST',
       url: '/soil/inputs/verify',
       headers: { authorization: `Bearer ${tokenA}` },
       payload: {
-        productName: 'Suspected Chlorpyrifos',
+        productName: 'DemoShield Plant Protectant',
         category: 'pesticide',
-        batchNumber: 'ALERT-RECALL-FAKE',
+        batchNumber: 'DEMO-RECALL-ALERT-004',
         providerMode: 'demo',
       },
     });
-    console.log('2. POST /soil/inputs/verify (Recall Alert Sample): HTTP', verifyAlert.statusCode);
+    console.log('2. POST /soil/inputs/verify (Demo Recall Alert Scenario): HTTP', verifyAlert.statusCode);
     const verifyAlertBody = JSON.parse(verifyAlert.body);
-    console.log('   -> Status:', verifyAlertBody.data.verificationStatus, '| Notice:', verifyAlertBody.data.notes);
-    if (verifyAlert.statusCode !== 201 || verifyAlertBody.data.verificationStatus !== 'recall_alert') throw new Error('Recall alert mapping failed');
+    console.log('   -> Status:', verifyAlertBody.data.verificationStatus, '| Scenario:', verifyAlertBody.data.evidence?.simulatedScenario);
+    if (verifyAlert.statusCode !== 201 || verifyAlertBody.data.verificationStatus !== 'demo' || verifyAlertBody.data.evidence?.simulatedScenario !== 'simulated_recall_alert') {
+      throw new Error('Demo recall alert mapping failed safety assertion');
+    }
 
     // 3. List Verifications
     const listVerif = await app.inject({
@@ -295,19 +318,26 @@ async function runManualE2E() {
     console.log('   AI Guidance Constraints:', voiceRes.result.aiGuidance);
     if (!voiceRes.success || !voiceRes.result.hasReport) throw new Error('Voice dispatcher execution failed');
 
-    // 3. Dispatch verify_agricultural_input_product via Voice
+    // 3. Dispatch verify_agricultural_input_product via Voice (Demo Reference Sample)
     const voiceVerifRes = await voiceDispatcher.dispatch(
       { sessionId: 'voice-call-session-901', userId: userAId, phone: '+919876543201', language: 'te' },
       'verify_agricultural_input_product',
       {
-        productName: 'Gromor Urea 46% N',
+        productName: 'DemoBio Complex NPK 20-20-20',
         category: 'fertilizer',
-        batchNumber: 'CORO-UREA-2026',
+        batchNumber: 'DEMO-FERT-NPK-001',
       }
     );
     console.log('3. Voice Dispatcher verify_agricultural_input_product: Success =', voiceVerifRes.success);
-    console.log('   Speech Findings Summary:', voiceRes.result ? voiceVerifRes.result.findingsSummary : 'none');
-    if (!voiceVerifRes.success || !voiceVerifRes.result.isAuthentic) throw new Error('Voice input verification failed');
+    console.log('   Speech Findings Summary:', voiceVerifRes.result ? voiceVerifRes.result.findingsSummary : 'none');
+    console.log('   Is Authentic Flag:', voiceVerifRes.result?.isAuthentic, '(Expected false for demo fixtures)');
+    if (!voiceVerifRes.success) throw new Error('Voice input verification dispatch failed');
+    if (voiceVerifRes.result.status !== 'demo' || voiceVerifRes.result.isAuthentic !== false) {
+      throw new Error('Voice input verification failed demo safety assertion: demo fixture must not be marked authentic');
+    }
+    if (!voiceVerifRes.result.findingsSummary.includes('DEMONSTRATION NOTICE') || voiceVerifRes.result.findingsSummary.includes('officially registered')) {
+      throw new Error('Voice input verification speech summary made unauthorized official claim on demo fixture');
+    }
 
     // 4. Test Unauthenticated Caller Session in Voice Dispatcher
     const unauthVoice = await voiceDispatcher.dispatch(
@@ -329,15 +359,15 @@ async function runManualE2E() {
     if (health.statusCode !== 200) throw new Error('Root health check failed');
 
     console.log('\n================================================================');
-    console.log('ALL MANUAL END-TO-END TESTS PASSED SUCCESSFULLY! (100% VERIFIED)');
+    console.log('ALL MANUAL END-TO-END TESTS PASSED SUCCESSFULLY! (22/22 RECONCILED STEPS VERIFIED)');
     console.log('================================================================');
   } finally {
     // Clean up seeded test records safely
     console.log('[Cleanup] Cleaning up temporary test records...');
     await db.delete(soilReports).where(or(eq(soilReports.farmerId, farmerAProfileId), eq(soilReports.farmerId, farmerBProfileId)));
     await db.delete(inputVerifications).where(or(eq(inputVerifications.farmerId, farmerAProfileId), eq(inputVerifications.farmerId, farmerBProfileId)));
-    await db.delete(fields).where(or(eq(fields.id, fieldAId), eq(fields.id, fieldBId)));
-    await db.delete(farms).where(or(eq(farms.id, farmAId), eq(farms.id, farmBId)));
+    await db.delete(fields).where(or(eq(fields.id, fieldAId), eq(fields.id, fieldA2Id), eq(fields.id, fieldBId)));
+    await db.delete(farms).where(or(eq(farms.id, farmAId), eq(farms.id, farmA2Id), eq(farms.id, farmBId)));
     await db.delete(farmerProfiles).where(or(eq(farmerProfiles.id, farmerAProfileId), eq(farmerProfiles.id, farmerBProfileId)));
     await db.delete(users).where(or(eq(users.id, userAId), eq(users.id, userBId)));
     await app.close();

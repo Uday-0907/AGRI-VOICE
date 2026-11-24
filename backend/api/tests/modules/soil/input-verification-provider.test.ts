@@ -18,78 +18,120 @@ describe('Agricultural Input Verification Provider Adapters', () => {
     });
   });
 
-  describe('MockInputVerificationProvider', () => {
+  describe('MockInputVerificationProvider (Demo Mode & Safety Invariants)', () => {
     const provider = new MockInputVerificationProvider();
 
-    it('should verify registered authentic fertilizer', async () => {
+    it('should return demo status for synthetic reference fertilizer fixture', async () => {
       const result = await provider.verifyInput({
-        productName: 'Gromor Urea 46% N',
+        productName: 'DemoBio Complex NPK 20-20-20',
         category: 'fertilizer',
-        batchNumber: 'CORO-UREA-2026',
+        batchNumber: 'DEMO-FERT-NPK-001',
       });
 
-      expect(result.verificationStatus).toBe('verified');
-      expect(result.brand).toContain('Gromor Urea');
-      expect(result.manufacturer).toContain('Coromandel');
-      expect(result.registrationNumber).toContain('FCO-AP');
+      expect(result.verificationStatus).toBe('demo');
+      expect(result.provider).toBe('demo_input_registry');
+      expect(result.brand).toContain('DemoBio Complex NPK');
+      expect(result.manufacturer).toContain('Fictional Entity');
+      expect(result.registrationNumber).toContain('DEMO-REG-FCO');
       expect(result.evidence).toBeDefined();
-      expect(result.evidence?.targetCrops).toContain('Paddy');
+      expect(result.evidence?.isDemo).toBe(true);
+      expect(result.evidence?.simulatedScenario).toBe('registered_sample');
+      expect(result.evidence?.disclaimer).toContain('DEMONSTRATION SAMPLE ONLY');
+      expect(result.notes).toContain('DEMONSTRATION SAMPLE ONLY');
     });
 
-    it('should verify registered authentic certified seed', async () => {
+    it('should return demo status for synthetic reference certified seed fixture', async () => {
       const result = await provider.verifyInput({
-        productName: 'Cotton Hybrid Seed',
+        productName: 'DemoHybrid Cotton Seed',
         category: 'seed',
-        batchNumber: 'KAVERI-JAADOO-SEED',
+        batchNumber: 'DEMO-SEED-HYB-002',
       });
 
-      expect(result.verificationStatus).toBe('verified');
-      expect(result.manufacturer).toContain('Kaveri Seed');
-      expect(result.registrationNumber).toContain('NSC-HYB-COT');
+      expect(result.verificationStatus).toBe('demo');
+      expect(result.provider).toBe('demo_input_registry');
+      expect(result.manufacturer).toContain('Fictional Entity');
+      expect(result.registrationNumber).toContain('DEMO-REG-NSC');
+      expect(result.evidence?.isDemo).toBe(true);
+      expect(result.evidence?.simulatedScenario).toBe('registered_sample');
     });
 
-    it('should flag expired shelf-life batches truthfully', async () => {
+    it('should return demo status (never real expired) for simulated expired batch fixture', async () => {
       const result = await provider.verifyInput({
-        productName: 'Sample Micro-Nutrient Mix',
+        productName: 'DemoCrop Micronutrient Mix',
         category: 'fertilizer',
-        batchNumber: 'EXPIRED-BATCH-99',
+        batchNumber: 'DEMO-EXPIRED-BATCH-003',
       });
 
-      expect(result.verificationStatus).toBe('expired');
-      expect(result.notes).toContain('expired');
+      expect(result.verificationStatus).toBe('demo');
+      expect(result.evidence?.isDemo).toBe(true);
+      expect(result.evidence?.simulatedScenario).toBe('simulated_expired');
+      expect(result.notes).toContain('DEMONSTRATION SAMPLE ONLY');
+      expect(result.notes).toContain('Not an official regulatory finding');
     });
 
-    it('should flag regulatory recall alerts from agricultural enforcement', async () => {
+    it('should return demo status (never real recall_alert) for simulated recall alert fixture', async () => {
       const result = await provider.verifyInput({
-        productName: 'Suspected Chlorpyrifos',
+        productName: 'DemoShield Plant Protectant',
         category: 'pesticide',
-        batchNumber: 'ALERT-RECALL-FAKE',
+        batchNumber: 'DEMO-RECALL-ALERT-004',
       });
 
-      expect(result.verificationStatus).toBe('recall_alert');
-      expect(result.notes).toContain('ADVISORY ALERT');
+      expect(result.verificationStatus).toBe('demo');
+      expect(result.evidence?.isDemo).toBe(true);
+      expect(result.evidence?.simulatedScenario).toBe('simulated_recall_alert');
+      expect(result.notes).toContain('DEMONSTRATION SAMPLE ONLY');
     });
 
-    it('should handle unlisted batch with clear non-counterfeit disclaimer', async () => {
+    it('should return demo status for unlisted demo batch with clear disclaimer', async () => {
       const result = await provider.verifyInput({
-        productName: 'Unknown Local Brand',
+        productName: 'Unknown Demo Brand',
         category: 'fertilizer',
-        batchNumber: 'NOTFOUND-BATCH-001',
+        batchNumber: 'NOTFOUND-DEMO-001',
       });
 
-      expect(result.verificationStatus).toBe('not_found');
-      expect(result.notes).toContain('Consult your local Mandal Agricultural Officer');
+      expect(result.verificationStatus).toBe('demo');
+      expect(result.evidence?.isDemo).toBe(true);
+      expect(result.evidence?.simulatedScenario).toBe('unregistered_sample');
+      expect(result.notes).toContain('DEMONSTRATION NOTICE');
     });
 
-    it('should handle inconclusive verification when certificates are missing', async () => {
+    it('should return demo status for simulated inconclusive test batch', async () => {
       const result = await provider.verifyInput({
-        productName: 'Test Inconclusive Fertilizer',
+        productName: 'Demo Inconclusive Fertilizer',
         category: 'fertilizer',
-        batchNumber: 'INCONCL-BATCH-002',
+        batchNumber: 'INCONCL-DEMO-002',
       });
 
-      expect(result.verificationStatus).toBe('inconclusive');
-      expect(result.notes).toContain('certificate was not uploaded by distributor');
+      expect(result.verificationStatus).toBe('demo');
+      expect(result.evidence?.isDemo).toBe(true);
+      expect(result.evidence?.simulatedScenario).toBe('simulated_inconclusive');
+      expect(result.notes).toContain('DEMONSTRATION NOTICE');
+    });
+
+    it('should NEVER return authoritative statuses from demo provider', async () => {
+      const testBatches = [
+        'DEMO-FERT-NPK-001',
+        'DEMO-SEED-HYB-002',
+        'DEMO-EXPIRED-BATCH-003',
+        'DEMO-RECALL-ALERT-004',
+        'NOTFOUND-DEMO-001',
+        'INCONCL-DEMO-002',
+        'RANDOM-BATCH-999',
+      ];
+
+      for (const batch of testBatches) {
+        const result = await provider.verifyInput({
+          productName: 'Sample Product',
+          category: 'fertilizer',
+          batchNumber: batch,
+        });
+
+        // Demo provider MUST ALWAYS return status 'demo'
+        expect(result.verificationStatus).toBe('demo');
+        expect(result.verificationStatus).not.toBe('verified');
+        expect(result.verificationStatus).not.toBe('recall_alert');
+        expect(result.verificationStatus).not.toBe('expired');
+      }
     });
   });
 });

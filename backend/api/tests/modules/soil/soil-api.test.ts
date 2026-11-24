@@ -219,45 +219,46 @@ describe('Pillar 6: Soil Health & Input Verification HTTP APIs', () => {
   });
 
   describe('Agricultural Input Verification Endpoints', () => {
-    const sampleVerification = {
+    const sampleDemoVerification = {
       id: 'v0000000-0000-0000-0000-000000000001',
       farmerId: mockFarmerProfile.id,
-      productName: 'Gromor Urea 46% N',
+      productName: 'DemoBio Complex NPK 20-20-20',
       category: 'fertilizer',
-      brand: 'Gromor',
-      batchNumber: 'CORO-UREA-2026',
-      registrationNumber: 'FCO-AP-2023-9941',
-      verificationStatus: 'verified' as const,
+      brand: 'DemoBio Complex NPK 20-20-20 (Synthetic Sample)',
+      batchNumber: 'DEMO-FERT-NPK-001',
+      registrationNumber: 'DEMO-REG-FCO-2026-001',
+      verificationStatus: 'demo' as const,
       provider: 'demo_input_registry',
-      evidence: { targetCrops: ['Paddy'] },
-      notes: 'Certified Neem Coated Urea',
+      evidence: { isDemo: true, simulatedScenario: 'registered_sample' },
+      notes: 'DEMONSTRATION SAMPLE ONLY: Fictional reference formulation for testing.',
       createdAt: new Date().toISOString(),
     };
 
-    it('POST /soil/inputs/verify should verify product and return 201 Created', async () => {
-      vi.spyOn(InputVerificationService.prototype, 'verifyAndSave').mockResolvedValueOnce(sampleVerification);
+    it('POST /soil/inputs/verify should verify product in demo mode and return 201 Created with status demo', async () => {
+      vi.spyOn(InputVerificationService.prototype, 'verifyAndSave').mockResolvedValueOnce(sampleDemoVerification);
 
       const res = await app.inject({
         method: 'POST',
         url: '/soil/inputs/verify',
         headers: { authorization: `Bearer ${testToken}` },
         payload: {
-          productName: 'Gromor Urea 46% N',
+          productName: 'DemoBio Complex NPK 20-20-20',
           category: 'fertilizer',
-          batchNumber: 'CORO-UREA-2026',
+          batchNumber: 'DEMO-FERT-NPK-001',
           providerMode: 'demo',
         },
       });
 
       expect(res.statusCode).toBe(201);
       const json = JSON.parse(res.body);
-      expect(json.data.verificationStatus).toBe('verified');
+      expect(json.data.verificationStatus).toBe('demo');
       expect(json.data.provider).toBe('demo_input_registry');
+      expect(json.data.evidence.isDemo).toBe(true);
     });
 
     it('GET /soil/inputs/verifications should return list with pagination meta', async () => {
       vi.spyOn(InputVerificationService.prototype, 'listVerifications').mockResolvedValueOnce({
-        data: [sampleVerification],
+        data: [sampleDemoVerification],
         total: 1,
         limit: 20,
         offset: 0,
@@ -290,25 +291,73 @@ describe('Pillar 6: Soil Health & Input Verification HTTP APIs', () => {
       expect(json.data.aiGuidance).toBeDefined();
     });
 
-    it('POST /soil/voice/verify-input should verify and return plain-text guidance for speech', async () => {
-      vi.spyOn(InputVerificationService.prototype, 'verifyAndSave').mockResolvedValueOnce(sampleVerification);
+    it('POST /soil/voice/verify-input should return safe demonstration notice for demo inputs', async () => {
+      const sampleDemoVerification = {
+        id: 'v0000000-0000-0000-0000-000000000001',
+        farmerId: mockFarmerProfile.id,
+        productName: 'DemoBio Complex NPK 20-20-20',
+        category: 'fertilizer',
+        brand: 'DemoBio',
+        batchNumber: 'DEMO-FERT-NPK-001',
+        registrationNumber: 'DEMO-REG-FCO-2026-001',
+        verificationStatus: 'demo' as const,
+        provider: 'demo_input_registry',
+        evidence: { isDemo: true, simulatedScenario: 'registered_sample' },
+        createdAt: new Date().toISOString(),
+      };
+      vi.spyOn(InputVerificationService.prototype, 'verifyAndSave').mockResolvedValueOnce(sampleDemoVerification);
 
       const res = await app.inject({
         method: 'POST',
         url: '/soil/voice/verify-input',
         headers: { authorization: `Bearer ${testToken}` },
         payload: {
-          productName: 'Gromor Urea 46% N',
+          productName: 'DemoBio Complex NPK 20-20-20',
           category: 'fertilizer',
-          batchNumber: 'CORO-UREA-2026',
+          batchNumber: 'DEMO-FERT-NPK-001',
           providerMode: 'demo',
         },
       });
 
       expect(res.statusCode).toBe(200);
       const json = JSON.parse(res.body);
+      expect(json.data.isAuthentic).toBe(false);
+      expect(json.data.status).toBe('demo');
+      expect(json.data.findingsSummary).toContain('DEMONSTRATION NOTICE');
+      expect(json.data.findingsSummary).not.toContain('officially registered and active');
+    });
+
+    it('POST /soil/voice/verify-input should return official registration for live verified inputs', async () => {
+      const sampleLiveVerification = {
+        id: 'v0000000-0000-0000-0000-000000000002',
+        farmerId: mockFarmerProfile.id,
+        productName: 'Official Registered Neem Urea',
+        category: 'fertilizer',
+        brand: 'OfficialBrand',
+        batchNumber: 'LIVE-BATCH-001',
+        registrationNumber: 'FCO-AP-2026-OFFICIAL',
+        verificationStatus: 'verified' as const,
+        provider: 'cibrc_national_registry',
+        createdAt: new Date().toISOString(),
+      };
+      vi.spyOn(InputVerificationService.prototype, 'verifyAndSave').mockResolvedValueOnce(sampleLiveVerification);
+
+      const res = await app.inject({
+        method: 'POST',
+        url: '/soil/voice/verify-input',
+        headers: { authorization: `Bearer ${testToken}` },
+        payload: {
+          productName: 'Official Registered Neem Urea',
+          category: 'fertilizer',
+          batchNumber: 'LIVE-BATCH-001',
+          providerMode: 'official',
+        },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const json = JSON.parse(res.body);
       expect(json.data.isAuthentic).toBe(true);
-      expect(json.data.findingsSummary).toContain('registered and active');
+      expect(json.data.findingsSummary).toContain('officially registered and active');
     });
   });
 });

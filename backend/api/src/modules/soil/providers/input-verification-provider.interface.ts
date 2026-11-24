@@ -17,6 +17,9 @@ export interface InputVerificationResult {
   batchNumber?: string;
   registrationNumber?: string;
   evidence?: {
+    isDemo?: boolean;
+    simulatedScenario?: string;
+    disclaimer?: string;
     licensedManufacturer?: string;
     registeredFormula?: string;
     validUntil?: string;

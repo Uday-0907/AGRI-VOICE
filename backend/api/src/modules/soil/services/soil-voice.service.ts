@@ -98,7 +98,9 @@ export class SoilVoiceService {
       },
       missingMeasurements: missing,
       sourceRecommendations: Array.isArray(latest.recommendations) ? latest.recommendations : [],
-      aiGuidance: `Grounding Constraints: State only the verified readings listed in nutrients. The test report is ${dataFreshnessDays} days old. If a nutrient is in missingMeasurements (${missing.join(', ')}), state that it was not tested. Do not invent fertilizer doses.`,
+      aiGuidance: latest.isDemo === 'true'
+        ? `DEMONSTRATION NOTICE: This report is a synthetic reference sample for testing and development. Explicitly inform the caller that this is sample demonstration data and NOT an official government Soil Health Card. Grounding Constraints: State only the verified readings listed in nutrients. The test report date is ${latest.reportDate}. If a nutrient is in missingMeasurements (${missing.join(', ')}), state that it was not tested. Do not invent fertilizer doses.`
+        : `Grounding Constraints: State only the verified readings listed in nutrients. The test report is ${dataFreshnessDays} days old. If a nutrient is in missingMeasurements (${missing.join(', ')}), state that it was not tested. Do not invent fertilizer doses.`,
     };
   }
 
@@ -125,28 +127,49 @@ export class SoilVoiceService {
       providerMode: params.providerMode,
     });
 
-    const isAuthentic = result.verificationStatus === 'verified';
+    const isDemo = result.provider === 'demo_input_registry' || result.verificationStatus === 'demo';
+    const isAuthentic = !isDemo && result.verificationStatus === 'verified';
     let findingsSummary = '';
 
-    switch (result.verificationStatus) {
-      case 'verified':
-        findingsSummary = `Product is officially registered and active under license ${result.registrationNumber || 'CIBRC-REG'}.`;
-        break;
-      case 'expired':
-        findingsSummary = 'Product batch shelf-life has expired according to official registry records. Do not apply.';
-        break;
-      case 'recall_alert':
-        findingsSummary = 'OFFICIAL WARNING: This batch has an active recall notice or quality alert from agricultural enforcement.';
-        break;
-      case 'not_found':
-        findingsSummary = 'No official gazette record found for this batch/product. Advise checking the physical seal and contacting the Mandal Agriculture Officer.';
-        break;
-      case 'inconclusive':
-        findingsSummary = 'Manufacturer registration was located, but batch quality test certificates are unconfirmed.';
-        break;
-      default:
-        findingsSummary = `Verification returned status: ${result.verificationStatus}.`;
+    if (isDemo) {
+      const scenario = result.evidence?.simulatedScenario;
+      if (scenario === 'simulated_recall_alert') {
+        findingsSummary = `DEMONSTRATION NOTICE: ${result.productName} is flagged for a simulated safety advisory test scenario in the demo catalog. This is synthetic test data only — not an official government recall.`;
+      } else if (scenario === 'simulated_expired') {
+        findingsSummary = `DEMONSTRATION NOTICE: ${result.productName} is marked with an expired shelf-life in the demo catalog. This is synthetic test data only — not an official regulatory determination.`;
+      } else if (scenario === 'unregistered_sample') {
+        findingsSummary = `DEMONSTRATION NOTICE: ${result.productName} was not found in the demo test catalog. This is a synthetic test query, not an official registry search.`;
+      } else {
+        findingsSummary = `DEMONSTRATION NOTICE: ${result.productName} was checked against our demonstration test database only. This is sample data for development and testing — not an official government verification or regulatory determination.`;
+      }
+    } else {
+      switch (result.verificationStatus) {
+        case 'verified':
+          findingsSummary = `Product is officially registered and active under license ${result.registrationNumber || 'CIBRC-REG'}.`;
+          break;
+        case 'expired':
+          findingsSummary = 'Product batch shelf-life has expired according to official registry records. Do not apply.';
+          break;
+        case 'recall_alert':
+          findingsSummary = 'OFFICIAL WARNING: This batch has an active recall notice or quality alert from agricultural enforcement.';
+          break;
+        case 'not_found':
+          findingsSummary = 'No official gazette record found for this batch/product. Advise checking the physical seal and contacting the Mandal Agriculture Officer.';
+          break;
+        case 'inconclusive':
+          findingsSummary = 'Manufacturer registration was located, but batch quality test certificates are unconfirmed.';
+          break;
+        case 'provider_unavailable':
+          findingsSummary = 'The official agricultural input verification registry is currently unavailable. Please try again later.';
+          break;
+        default:
+          findingsSummary = `Verification returned status: ${result.verificationStatus}.`;
+      }
     }
+
+    const aiGuidance = isDemo
+      ? 'Grounding Constraints: This is demonstration sample data. Explicitly inform the caller that this is sample testing data and NOT an official government verification. Never make real-world certification or regulatory claims.'
+      : 'Explain the verification findings neutrally. Do not make unverified accusations if status is not_found or inconclusive. Clearly relay official warnings if recall_alert or expired.';
 
     return {
       productName: result.productName,
@@ -157,7 +180,7 @@ export class SoilVoiceService {
       provider: result.provider,
       isAuthentic,
       findingsSummary,
-      aiGuidance: 'Explain the verification findings neutrally. Do not make unverified accusations if status is not_found or inconclusive. Clearly relay official warnings if recall_alert or expired.',
+      aiGuidance,
     };
   }
 }

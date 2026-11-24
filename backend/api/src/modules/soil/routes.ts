@@ -44,7 +44,14 @@ export const soilRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
    * GET /soil/dashboard
    * Returns latest report, soil summary KPIs, and recent test history.
    */
-  fastify.get('/dashboard', async (request, reply) => {
+  fastify.get('/dashboard', {
+    schema: {
+      tags: ['Soil Health'],
+      summary: 'Get Soil Health Dashboard',
+      description: 'Returns latest report, soil summary KPIs, and recent test history for the authenticated farmer.',
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     const user = (request as any).user;
     const profile = await assertFarmerContext(user.id);
     const dashboard = await soilReportService.getDashboard(profile.id);
@@ -57,6 +64,10 @@ export const soilRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
    */
   fastify.post<{ Body: SoilLookupRequest }>('/lookup', {
     schema: {
+      tags: ['Soil Health'],
+      summary: 'Lookup Soil Health Card',
+      description: 'Initiates a Soil Health Card lookup and persists normalized results.',
+      security: [{ bearerAuth: [] }],
       body: SoilLookupRequestSchema,
     },
   }, async (request, reply) => {
@@ -73,6 +84,10 @@ export const soilRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
    */
   fastify.get<{ Querystring: SoilReportListQuery }>('/reports', {
     schema: {
+      tags: ['Soil Health'],
+      summary: 'List Soil Reports',
+      description: 'Lists historical soil reports with pagination and optional farm/field filter.',
+      security: [{ bearerAuth: [] }],
       querystring: SoilReportListQuerySchema,
     },
   }, async (request, reply) => {
@@ -98,8 +113,12 @@ export const soilRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
    */
   fastify.get<{ Params: { id: string } }>('/reports/:id', {
     schema: {
+      tags: ['Soil Health'],
+      summary: 'Get Soil Report by ID',
+      description: 'Retrieves single soil report details by ID with ownership enforcement.',
+      security: [{ bearerAuth: [] }],
       params: Type.Object({
-        id: Type.String({ format: 'uuid' }),
+        id: Type.String({ format: 'uuid', description: 'Soil report UUID' }),
       }),
     },
   }, async (request, reply) => {
@@ -115,8 +134,12 @@ export const soilRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
    */
   fastify.post<{ Params: { id: string } }>('/reports/:id/refresh', {
     schema: {
+      tags: ['Soil Health'],
+      summary: 'Refresh Soil Report',
+      description: 'Re-queries the upstream source for the specified report without dropping historical versions.',
+      security: [{ bearerAuth: [] }],
       params: Type.Object({
-        id: Type.String({ format: 'uuid' }),
+        id: Type.String({ format: 'uuid', description: 'Soil report UUID' }),
       }),
     },
   }, async (request, reply) => {
@@ -136,6 +159,10 @@ export const soilRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
    */
   fastify.post<{ Body: InputVerificationRequest }>('/inputs/verify', {
     schema: {
+      tags: ['Input Verification'],
+      summary: 'Verify Agricultural Input',
+      description: 'Submits a seed, fertilizer, or pesticide for license and batch verification.',
+      security: [{ bearerAuth: [] }],
       body: InputVerificationRequestSchema,
     },
   }, async (request, reply) => {
@@ -152,6 +179,10 @@ export const soilRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
    */
   fastify.get<{ Querystring: InputVerificationListQuery }>('/inputs/verifications', {
     schema: {
+      tags: ['Input Verification'],
+      summary: 'List Input Verifications',
+      description: "Lists farmer's input verification history with pagination.",
+      security: [{ bearerAuth: [] }],
       querystring: InputVerificationListQuerySchema,
     },
   }, async (request, reply) => {
@@ -177,8 +208,12 @@ export const soilRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
    */
   fastify.get<{ Params: { id: string } }>('/inputs/verifications/:id', {
     schema: {
+      tags: ['Input Verification'],
+      summary: 'Get Input Verification by ID',
+      description: 'Retrieves single input verification record by ID with ownership enforcement.',
+      security: [{ bearerAuth: [] }],
       params: Type.Object({
-        id: Type.String({ format: 'uuid' }),
+        id: Type.String({ format: 'uuid', description: 'Input verification UUID' }),
       }),
     },
   }, async (request, reply) => {
@@ -196,7 +231,14 @@ export const soilRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
    * GET /soil/voice/context
    * Returns structured soil health facts, data freshness, and AI guidance for phone calls.
    */
-  fastify.get('/voice/context', async (request, reply) => {
+  fastify.get('/voice/context', {
+    schema: {
+      tags: ['Soil Voice AI'],
+      summary: 'Get Soil Voice AI Context',
+      description: 'Returns structured soil health facts, data freshness, and AI guidance for phone calls.',
+      security: [{ bearerAuth: [] }],
+    },
+  }, async (request, reply) => {
     const user = (request as any).user;
     const voiceContext = await voiceService.getVoiceSoilContext(user.id);
     return { data: voiceContext };
@@ -216,6 +258,10 @@ export const soilRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
     };
   }>('/voice/verify-input', {
     schema: {
+      tags: ['Soil Voice AI'],
+      summary: 'Verify Input for Voice Call',
+      description: 'Voice tool operation to verify inputs directly from telephone speech flow.',
+      security: [{ bearerAuth: [] }],
       body: Type.Object({
         productName: Type.String({ minLength: 1 }),
         category: InputCategory,

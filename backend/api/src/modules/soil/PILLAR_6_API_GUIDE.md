@@ -126,12 +126,12 @@ Initiates lookup against the national Soil Health Card registry (`soilhealth.dac
 - **Validation Constraints:**
   - `cardId`: string, minLength 3, maxLength 64.
   - `farmId`: optional UUID (must be owned by the calling farmer; otherwise 403 Forbidden).
-  - `fieldId`: optional UUID (must belong to a farm owned by the calling farmer; otherwise 403 Forbidden).
-  - `providerMode`: optional. In local development, defaults to `'demo'` if `GOV_DATA_API_KEY` is unset.
+  - `fieldId`: optional UUID (must belong to the exact specified farm owned by the calling farmer; otherwise 403 Forbidden).
+  - `providerMode`: optional (`'auto'` | `'government'` | `'demo'`). In local development, defaults to `'demo'` if `GOV_DATA_API_KEY` is unset.
 - **Success Response (201 Created):** Returns the normalized, persisted `SoilReportResponse` entity.
 - **Failure Responses:**
   - `400 Bad Request`: Validation failure (e.g. cardId too short).
-  - `403 Forbidden`: Cross-farmer farm/field ID submitted.
+  - `403 Forbidden`: Cross-farmer farm/field ID submitted or field does not belong to the requested farm.
   - `503 Service Unavailable`: Upstream national portal offline (returns structured `status: "provider_unavailable"` report).
 
 ---
@@ -179,50 +179,53 @@ Re-queries the provider using the report's `cardId` and persists a new updated v
 ## 4. Agricultural Input & Product Verification
 
 ### `POST /soil/inputs/verify`
-Verifies a seed, fertilizer, or pesticide against CIBRC / FCO regulatory databases.
+Verifies a seed, fertilizer, or pesticide against CIBRC / FCO regulatory databases or test demonstration catalog.
 
 - **Request Body (application/json):**
 ```json
 {
-  "productName": "Gromor Urea 46% N",
+  "productName": "DemoBio Complex NPK 20-20-20",
   "category": "fertilizer", // 'fertilizer' | 'seed' | 'pesticide' | 'bio_stimulant' | 'other'
-  "brand": "Gromor",
-  "manufacturer": "Coromandel International Ltd",
-  "batchNumber": "CORO-UREA-2026",
-  "registrationNumber": "FCO-AP-2023-9941",
-  "providerMode": "auto" // 'auto' | 'official' | 'demo'
+  "brand": "DemoBio Complex NPK 20-20-20 (Synthetic Sample)",
+  "manufacturer": "Demo Agrochemicals Lab Ltd (Fictional Entity)",
+  "batchNumber": "DEMO-FERT-NPK-001",
+  "registrationNumber": "DEMO-REG-FCO-2026-001",
+  "providerMode": "demo" // 'auto' | 'official' | 'demo'
 }
 ```
 - **Verification Status Values (`verificationStatus`):**
-  - `verified`: Active, certified registry entry.
+  - `verified`: Active, certified registry entry (Official mode only with live provider evidence).
   - `not_found`: No matching registry record (Note: UI must clearly explain this does not prove counterfeit; manual check with Mandal Agriculture Officer advised).
-  - `expired`: Product batch past official shelf-life.
-  - `recall_alert`: Official agricultural department vigilance/recall warning.
+  - `expired`: Product batch past official shelf-life (Official mode only).
+  - `recall_alert`: Official agricultural department vigilance/recall warning (Official mode only).
   - `inconclusive`: Manufacturer registered, but batch certificate unconfirmed.
   - `provider_unavailable`: Registry gateway credentials offline.
-  - `demo`: Verified in demonstration test suite.
-- **Success Response (201 Created):**
+  - `demo`: Synthetic test demonstration data. All demo mode queries return `status: "demo"` with explicit disclaimers in `evidence` and `notes`. Never produces official regulatory claims.
+- **Success Response (201 Created) — Demo Mode Example:**
 ```json
 {
   "data": {
     "id": "v0000000-0000-0000-0000-000000000001",
     "farmerId": "f0000000-0000-0000-0000-000000000001",
-    "productName": "Gromor Urea 46% N",
+    "productName": "DemoBio Complex NPK 20-20-20",
     "category": "fertilizer",
-    "brand": "Gromor",
-    "manufacturer": "Coromandel International Ltd",
-    "batchNumber": "CORO-UREA-2026",
-    "registrationNumber": "FCO-AP-2023-9941",
-    "verificationStatus": "verified",
+    "brand": "DemoBio Complex NPK 20-20-20 (Synthetic Sample)",
+    "manufacturer": "Demo Agrochemicals Lab Ltd (Fictional Entity)",
+    "batchNumber": "DEMO-FERT-NPK-001",
+    "registrationNumber": "DEMO-REG-FCO-2026-001",
+    "verificationStatus": "demo",
     "provider": "demo_input_registry",
     "evidence": {
-      "licensedManufacturer": "Coromandel International Ltd",
-      "registeredFormula": "Gromor Urea 46% N",
+      "isDemo": true,
+      "simulatedScenario": "registered_sample",
+      "disclaimer": "DEMONSTRATION SAMPLE ONLY: This record was generated in a local test catalog. It does not represent an official regulatory finding or government registry verification.",
+      "licensedManufacturer": "Demo Agrochemicals Lab Ltd (Fictional Entity)",
+      "registeredFormula": "DemoBio Complex NPK 20-20-20 (Synthetic Sample)",
       "validUntil": "2028-12-31",
       "targetCrops": ["Paddy", "Chilli", "Cotton", "Maize"],
-      "officialNotice": "Certified Neem Coated Urea"
+      "officialNotice": "DEMONSTRATION SAMPLE ONLY: Fictional reference formulation for testing. Not an official regulatory determination."
     },
-    "notes": "Certified Neem Coated Urea adhering to Indian Fertilizer Control Order standard specifications.",
+    "notes": "DEMONSTRATION SAMPLE ONLY: Fictional reference formulation for testing. Not an official regulatory determination.",
     "createdAt": "2026-11-24T09:30:00.000Z"
   }
 }

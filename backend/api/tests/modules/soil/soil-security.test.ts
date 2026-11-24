@@ -141,6 +141,54 @@ describe('Pillar 6: Cross-Farmer Ownership & Authorization Security', () => {
     expect(res.statusCode).toBe(403);
   });
 
+  it('should reject card lookup with field belonging to another farm of the same farmer (403 Forbidden)', async () => {
+    const farm1Id = '00000000-0000-0000-0000-000000000001';
+    const fieldFromFarm2Id = '00000000-0000-0000-0000-000000000002';
+
+    vi.spyOn(SoilReportService.prototype, 'lookupAndSaveCard').mockImplementation(async (farmerId, req) => {
+      if (req.farmId === farm1Id && req.fieldId === fieldFromFarm2Id) {
+        throw new ForbiddenError(`Field ${req.fieldId} does not belong to farm ${req.farmId} owned by the authenticated farmer.`);
+      }
+      return {} as any;
+    });
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/soil/lookup',
+      headers: { authorization: `Bearer ${farmerAToken}` },
+      payload: {
+        cardId: 'SHC-123',
+        farmId: farm1Id,
+        fieldId: fieldFromFarm2Id,
+      },
+    });
+
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('should reject card lookup with field belonging to another farmer (403 Forbidden)', async () => {
+    const fieldBOwnedId = '00000000-0000-0000-0000-000000000003';
+
+    vi.spyOn(SoilReportService.prototype, 'lookupAndSaveCard').mockImplementation(async (farmerId, req) => {
+      if (req.fieldId === fieldBOwnedId && farmerId === farmerA.id) {
+        throw new ForbiddenError(`Field ${req.fieldId} does not belong to a farm owned by the authenticated farmer.`);
+      }
+      return {} as any;
+    });
+
+    const res = await app.inject({
+      method: 'POST',
+      url: '/soil/lookup',
+      headers: { authorization: `Bearer ${farmerAToken}` },
+      payload: {
+        cardId: 'SHC-123',
+        fieldId: fieldBOwnedId,
+      },
+    });
+
+    expect(res.statusCode).toBe(403);
+  });
+
   it('should fail closed when user has no active farmer profile (403 Forbidden)', async () => {
     const unprofiledToken = app.jwt.sign({ id: 'user-without-profile-id', phone: '+919999999999' });
 
