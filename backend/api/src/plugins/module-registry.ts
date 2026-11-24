@@ -1,5 +1,5 @@
 import fp from 'fastify-plugin';
-import { FastifyInstance, FastifyPluginOptions } from 'fastify';
+import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 
 /**
  * Pillar Module Registry Plugin
@@ -7,16 +7,16 @@ import { FastifyInstance, FastifyPluginOptions } from 'fastify';
  */
 export interface PillarModule {
   prefix: string;
-  register: (app: FastifyInstance) => Promise<void>;
+  register: FastifyPluginAsync;
 }
 
-export default fp(async (fastify: FastifyInstance, opts: FastifyPluginOptions) => {
+export default fp(async (fastify: FastifyInstance) => {
   const modules: PillarModule[] = [];
 
   fastify.decorate('registerPillar', (mod: PillarModule) => {
     fastify.register(mod.register, { prefix: mod.prefix });
     modules.push(mod);
-    fastify.log.info(`Registered pillar module: ${mod.prefix}`);
+    fastify.log.info(`[Registry] Registered pillar module at ${mod.prefix}`);
   });
 });
 

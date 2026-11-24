@@ -1,10 +1,11 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
-import dotenv from 'dotenv';
+import * as dotenvLib from 'dotenv';
 import path from 'path';
 import * as schema from './schema.js';
 
 // Load environment configuration
+const dotenv = dotenvLib.default || dotenvLib;
 dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
 dotenv.config(); // fallback to local directory .env
 

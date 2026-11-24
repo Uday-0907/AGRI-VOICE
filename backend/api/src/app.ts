@@ -4,8 +4,9 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import authPlugin from './plugins/auth.js';
 import dbPlugin from './plugins/db.js';
-import registryPlugin from './plugins/register-pillar.js';
+import registryPlugin from './plugins/module-registry.js';
 import contextPlugin from './plugins/context.js';
+import { soilModule } from './modules/soil/index.js';
 
 export async function buildApp() {
   const app = fastify({
@@ -22,6 +23,9 @@ export async function buildApp() {
   await app.register(authPlugin);
   await app.register(contextPlugin);
   await app.register(registryPlugin);
+
+  // Pillar Modules
+  app.registerPillar(soilModule);
 
   app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 

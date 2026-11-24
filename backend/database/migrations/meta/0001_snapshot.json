@@ -349,7 +349,7 @@
         },
         "chk_farms_location_valid": {
           "name": "chk_farms_location_valid",
-          "value": "\"farms\".\"location\" IS NOT NULL AND NOT ST_IsEmpty(\"farms\".\"location\") AND ST_X(\"farms\".\"location\") BETWEEN -180 AND 180 AND ST_Y(\"farms\".\"location\") BETWEEN -90 AND 90"
+          "value": "\"farms\".\"location\" IS NULL OR (NOT ST_IsEmpty(\"farms\".\"location\") AND ST_X(\"farms\".\"location\") BETWEEN -180 AND 180 AND ST_Y(\"farms\".\"location\") BETWEEN -90 AND 90)"
         }
       },
       "isRLSEnabled": false
@@ -494,11 +494,11 @@
         },
         "chk_fields_location_valid": {
           "name": "chk_fields_location_valid",
-          "value": "\"fields\".\"location\" IS NOT NULL AND NOT ST_IsEmpty(\"fields\".\"location\") AND ST_X(\"fields\".\"location\") BETWEEN -180 AND 180 AND ST_Y(\"fields\".\"location\") BETWEEN -90 AND 90"
+          "value": "\"fields\".\"location\" IS NULL OR (NOT ST_IsEmpty(\"fields\".\"location\") AND ST_X(\"fields\".\"location\") BETWEEN -180 AND 180 AND ST_Y(\"fields\".\"location\") BETWEEN -90 AND 90)"
         },
         "chk_fields_boundary_valid": {
           "name": "chk_fields_boundary_valid",
-          "value": "\"fields\".\"boundary\" IS NOT NULL AND ST_IsValid(\"fields\".\"boundary\") AND NOT ST_IsEmpty(\"fields\".\"boundary\")"
+          "value": "\"fields\".\"boundary\" IS NULL OR (ST_IsValid(\"fields\".\"boundary\") AND NOT ST_IsEmpty(\"fields\".\"boundary\"))"
         }
       },
       "isRLSEnabled": false

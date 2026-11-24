@@ -15,6 +15,13 @@
       "when": 1795425981361,
       "tag": "0001_integrity_constraints",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795456350071,
+      "tag": "0002_pillar_6_soil_foundation",
+      "breakpoints": true
     }
   ]
 }
