@@ -1,16 +1,8 @@
 import { SoilVoiceService } from './services/soil-voice.service.js';
 import { InputCategoryType } from './contracts.js';
+import { VoiceTool, VoiceSessionContext } from '../voice/dispatcher.js';
 
-export interface VoiceToolDefinition {
-  name: string;
-  description: string;
-  parameters: {
-    type: 'object';
-    properties: Record<string, any>;
-    required?: string[];
-  };
-  execute: (session: { userId: string }, args: any) => Promise<any>;
-}
+export type VoiceToolDefinition = VoiceTool;
 
 /**
  * Pillar 6 Voice AI Tools Registry.
@@ -19,7 +11,7 @@ export interface VoiceToolDefinition {
  */
 export function createSoilVoiceTools(
   voiceService: SoilVoiceService = new SoilVoiceService()
-): VoiceToolDefinition[] {
+): VoiceTool[] {
   return [
     {
       name: 'get_farmer_soil_health_context',
@@ -30,7 +22,7 @@ export function createSoilVoiceTools(
         properties: {},
         required: [],
       },
-      execute: async (session) => {
+      execute: async (session: VoiceSessionContext) => {
         if (!session?.userId) {
           throw new Error('UNAUTHORIZED_CALLER_SESSION: Caller session identity is not verified.');
         }
@@ -64,7 +56,7 @@ export function createSoilVoiceTools(
         },
         required: ['productName', 'category'],
       },
-      execute: async (session, args) => {
+      execute: async (session: VoiceSessionContext, args: any) => {
         if (!session?.userId) {
           throw new Error('UNAUTHORIZED_CALLER_SESSION: Caller session identity is not verified.');
         }
