@@ -1,55 +1,57 @@
-
-import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 import AppLayout from './app/layouts/AppLayout';
+import { AuthProvider } from './app/providers/AuthProvider';
+import { RouterProvider, useRouter, type AppRoute } from './app/routes/routes';
+import FarmerLoginPage from './features/auth/FarmerLoginPage';
+import FarmerDashboardPage from './features/dashboard/FarmerDashboardPage';
+import LandingPage from './features/landing/LandingPage';
+import SoilManagementPage from './features/soil/SoilManagementPage';
+import VoiceAssistantPage from './features/voice/VoiceAssistantPage';
+import WeatherAdvisoryPage from './features/weather/WeatherAdvisoryPage';
 
-export default function App() {
-  const { t } = useTranslation('common');
+function AppShell() {
+  const { route } = useRouter();
+  const [voiceDrawerOpen, setVoiceDrawerOpen] = useState(false);
+
+  const renderPage = () => {
+    switch (route) {
+      case '/dashboard':
+        return (
+          <FarmerDashboardPage
+            onOpenVoiceDrawer={() => setVoiceDrawerOpen(true)}
+          />
+        );
+      case '/weather':
+        return <WeatherAdvisoryPage />;
+      case '/soil':
+        return <SoilManagementPage />;
+      case '/voice':
+        return <VoiceAssistantPage />;
+      case '/login':
+        return <FarmerLoginPage />;
+      case '/':
+      default:
+        return <LandingPage />;
+    }
+  };
 
   return (
-    <AppLayout>
-      <section id="home" className="hero-section">
-        <span className="eyebrow">
-          {t('landing.eyebrow')}
-        </span>
-
-        <h1>
-          {t('landing.heading')}
-          <br />
-          {t('landing.headingAccent')}
-        </h1>
-
-        <p>{t('landing.description')}</p>
-
-        <a href="#features" className="primary-button">
-          {t('landing.primaryAction')} →
-        </a>
-      </section>
-
-      <section id="features" className="feature-section">
-        <h2>{t('landing.featuresHeading')}</h2>
-
-        <div className="feature-grid">
-          <article id="weather" className="feature-card">
-            <h3>{t('landing.weatherTitle')}</h3>
-            <p>{t('landing.weatherDescription')}</p>
-          </article>
-
-          <article id="soil" className="feature-card">
-            <h3>{t('landing.soilTitle')}</h3>
-            <p>{t('landing.soilDescription')}</p>
-          </article>
-
-          <article id="voice" className="feature-card">
-            <h3>{t('landing.voiceTitle')}</h3>
-            <p>{t('landing.voiceDescription')}</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="farmer-login" className="login-section">
-        <h2>{t('landing.loginTitle')}</h2>
-        <p>{t('landing.loginDescription')}</p>
-      </section>
+    <AppLayout
+      voiceDrawerOpen={voiceDrawerOpen}
+      onOpenVoiceDrawer={() => setVoiceDrawerOpen(true)}
+      onCloseVoiceDrawer={() => setVoiceDrawerOpen(false)}
+    >
+      {renderPage()}
     </AppLayout>
+  );
+}
+
+export default function App({ initialRoute }: { initialRoute?: AppRoute }) {
+  return (
+    <AuthProvider>
+      <RouterProvider initialRoute={initialRoute}>
+        <AppShell />
+      </RouterProvider>
+    </AuthProvider>
   );
 }
