@@ -30,7 +30,7 @@ describe('Pillar 6: Soil Health & Input Verification HTTP APIs', () => {
     reportId: 'SHC-AP-1001',
     cardId: 'SHC-AP-1001',
     source: 'demo_mock_provider',
-    sourceAuthority: 'ANGRAU Research Station',
+    sourceAuthority: 'AgriVoice Demo Soil Testing Laboratory',
     reportDate: new Date().toISOString(),
     ph: 7.5,
     ec: 0.4,

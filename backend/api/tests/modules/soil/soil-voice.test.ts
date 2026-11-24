@@ -64,7 +64,7 @@ describe('SoilVoiceService — Phone & Voice AI Integration', () => {
       reportId: 'SHC-AP-2026-99',
       cardId: 'SHC-AP-2026-99',
       source: 'demo_mock_provider',
-      sourceAuthority: 'ANGRAU Research Station',
+      sourceAuthority: 'AgriVoice Demo Soil Testing Laboratory',
       reportDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days old
       ph: 7.4,
       ec: 0.35,

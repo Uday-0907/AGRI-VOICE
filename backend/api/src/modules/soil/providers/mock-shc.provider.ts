@@ -58,7 +58,7 @@ export class MockSHCProvider implements ISHCProvider {
       cardId,
       reportId: `DEMO-SHC-${cardId}`,
       source: this.name,
-      sourceAuthority: 'Regional Agricultural Research Station (Demo), ANGRAU',
+      sourceAuthority: 'AgriVoice Demo Soil Testing Laboratory',
       sampleDate: '2026-05-10T04:30:00.000Z',
       testingDate: '2026-05-18T10:00:00.000Z',
       reportDate: '2026-05-22T08:00:00.000Z',

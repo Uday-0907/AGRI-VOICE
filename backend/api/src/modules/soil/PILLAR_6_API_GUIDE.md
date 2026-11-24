@@ -2,9 +2,11 @@
 
 **Audience:** Member 5 (Frontend UI Lead for Pillar 6) & Member 1 (Project Lead)  
 **Module Route Prefix:** `/soil`  
+**Total Endpoints:** 10 (8 Web Application Endpoints + 2 Voice AI Operations)  
 **Base URL:** `http://localhost:4000/soil` (Development)  
 **Authentication:** Required on all endpoints. Header: `Authorization: Bearer <JWT_TOKEN>`. Requests without a valid JWT receive `401 Unauthorized`.  
-**Farmer Ownership Rule:** All endpoints automatically bind to the authenticated caller's Farmer Profile (`assertFarmerContext`). Requesting cross-farmer records returns `404 Not Found` (fail-closed, IDOR-protected).
+**Farmer Ownership Rule:** All endpoints automatically bind to the authenticated caller's Farmer Profile (`assertFarmerContext`). Requesting cross-farmer records returns `404 Not Found` (fail-closed, IDOR-protected).  
+**Demonstration / Demo Data Notice:** All demo fixtures and simulated catalog entries are synthetic reference samples. No real brand, manufacturer, or product is accused of regulatory violations or counterfeiting in demo mode.
 
 ---
 

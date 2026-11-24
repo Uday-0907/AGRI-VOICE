@@ -67,7 +67,7 @@ describe('Agricultural Input Verification Provider Adapters', () => {
       });
 
       expect(result.verificationStatus).toBe('recall_alert');
-      expect(result.notes).toContain('OFFICIAL ADVISORY ALERT');
+      expect(result.notes).toContain('ADVISORY ALERT');
     });
 
     it('should handle unlisted batch with clear non-counterfeit disclaimer', async () => {

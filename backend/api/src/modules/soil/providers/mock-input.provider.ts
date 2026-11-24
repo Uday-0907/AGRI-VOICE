@@ -3,11 +3,14 @@ import { IInputVerificationProvider, InputVerificationParams, InputVerificationR
 /**
  * Mock / Demo Agricultural Input Verification Provider Adapter.
  * Provides verifiable sample entries for fertilizers, hybrid seeds, and plant protection chemicals.
+ *
+ * Safety Invariant: All demonstration records are explicitly identified as synthetic reference samples.
+ * No real brand or manufacturer is falsely accused of regulatory violations or counterfeiting.
  */
 export class MockInputVerificationProvider implements IInputVerificationProvider {
   readonly name = 'demo_input_registry';
 
-  // Sample database of registered genuine and alerted batches
+  // Sample database of registered genuine and alerted demonstration batches
   private sampleCatalog: Record<string, {
     brand: string;
     manufacturer: string;
@@ -19,54 +22,54 @@ export class MockInputVerificationProvider implements IInputVerificationProvider
     notes: string;
   }> = {
     'CORO-UREA-2026': {
-      brand: 'Gromor Urea 46% N',
-      manufacturer: 'Coromandel International Ltd',
+      brand: 'Gromor Urea 46% N (Synthetic Reference Sample)',
+      manufacturer: 'Coromandel International Ltd (Synthetic Sample)',
       category: 'fertilizer',
       status: 'verified',
       registrationNumber: 'FCO-AP-2023-9941',
       validUntil: '2028-12-31',
       crops: ['Paddy', 'Chilli', 'Cotton', 'Maize'],
-      notes: 'Certified Neem Coated Urea adhering to Indian Fertilizer Control Order standard specifications.',
+      notes: 'Certified Neem Coated Urea adhering to Indian Fertilizer Control Order standard specifications (Synthetic Demonstration Record).',
     },
     'BAYER-CONFIDOR-200': {
-      brand: 'Confidor 200 SL (Imidacloprid 17.8% SL)',
-      manufacturer: 'Bayer CropScience Ltd',
+      brand: 'Confidor 200 SL (Imidacloprid 17.8% SL) (Synthetic Reference Sample)',
+      manufacturer: 'Bayer CropScience Ltd (Synthetic Sample)',
       category: 'pesticide',
       status: 'verified',
       registrationNumber: 'CIR-22441/2001-Imidacloprid(SL)-241',
       validUntil: '2027-06-30',
       crops: ['Cotton', 'Paddy', 'Chilli', 'Sugarcane'],
-      notes: 'Authentic formulation registered under Central Insecticides Board (CIB&RC).',
+      notes: 'Authentic formulation registered under Central Insecticides Board (CIB&RC) (Synthetic Demonstration Record).',
     },
     'KAVERI-JAADOO-SEED': {
-      brand: 'Kaveri Cotton Hybrid Seed Jaadoo BG-II',
-      manufacturer: 'Kaveri Seed Company Ltd',
+      brand: 'Kaveri Cotton Hybrid Seed Jaadoo BG-II (Synthetic Reference Sample)',
+      manufacturer: 'Kaveri Seed Company Ltd (Synthetic Sample)',
       category: 'seed',
       status: 'verified',
       registrationNumber: 'NSC-HYB-COT-4109',
       validUntil: '2027-03-31',
       crops: ['Cotton'],
-      notes: 'Govt certified seed germination rate >= 75%, genetic purity >= 90%.',
+      notes: 'Govt certified seed germination rate >= 75%, genetic purity >= 90% (Synthetic Demonstration Record).',
     },
     'EXPIRED-BATCH-99': {
-      brand: 'Sample Micro-Nutrient Mix',
-      manufacturer: 'AgriChem Labs India',
+      brand: 'Demo Synthetic Micro-Nutrient Mix (Expired Test Sample)',
+      manufacturer: 'Synthetic AgriChem Labs (Demo Entity)',
       category: 'fertilizer',
       status: 'expired',
       registrationNumber: 'FCO-TS-2020-1122',
       validUntil: '2024-01-01',
       crops: ['All Crops'],
-      notes: 'Product batch shelf-life has expired. Efficacy cannot be guaranteed; do not use.',
+      notes: 'Demonstration Test: Product batch shelf-life has expired. Efficacy cannot be guaranteed; do not use.',
     },
     'ALERT-RECALL-FAKE': {
-      brand: 'Suspected Counterfeit Chlorpyrifos 20% EC',
-      manufacturer: 'Unknown / Suspended License Entity',
+      brand: 'Synthetic Vigilance Alert Test Batch (Demo Only - Not A Real Product)',
+      manufacturer: 'Synthetic Suspended License Entity (Demo Test Batch)',
       category: 'pesticide',
       status: 'recall_alert',
-      registrationNumber: 'INVALID-SUSPENDED',
+      registrationNumber: 'INVALID-DEMO-SUSPENDED',
       validUntil: '2023-01-01',
       crops: [],
-      notes: 'OFFICIAL ADVISORY ALERT: State Agriculture Vigilance department flagged this batch as unauthorized dilution.',
+      notes: 'DEMO ADVISORY ALERT: Synthetic demonstration alert sample for vigilance test suite.',
     },
   };
 
@@ -99,7 +102,7 @@ export class MockInputVerificationProvider implements IInputVerificationProvider
           category: params.category,
           brand: params.brand,
           batchNumber: params.batchNumber,
-          notes: 'Manufacturer registration exists, but batch manufacturing certificate was not uploaded by distributor.',
+          notes: 'Manufacturer registration exists, but batch quality test certificates are unconfirmed (certificate was not uploaded by distributor).',
         };
       }
 
@@ -109,11 +112,11 @@ export class MockInputVerificationProvider implements IInputVerificationProvider
         provider: this.name,
         productName: params.productName,
         category: params.category,
-        brand: params.brand || 'Demo Manufacturer',
+        brand: params.brand || 'Synthetic Demo Brand',
         batchNumber: params.batchNumber || 'DEMO-BATCH-001',
         registrationNumber: 'DEMO-REG-4401',
         evidence: {
-          licensedManufacturer: params.manufacturer || 'Certified Agri-Input Producer',
+          licensedManufacturer: params.manufacturer || 'Certified Demo Input Producer',
           registeredFormula: `${params.productName} Standard Grade`,
           validUntil: '2027-12-31',
           targetCrops: ['Paddy', 'Chilli', 'Cotton'],

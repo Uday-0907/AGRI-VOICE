@@ -15,3 +15,4 @@ export * from './services/input-verification.service.js';
 export * from './services/soil-voice.service.js';
 export * from './providers/shc-provider.interface.js';
 export * from './providers/input-verification-provider.interface.js';
+export * from './voice-tools.js';
