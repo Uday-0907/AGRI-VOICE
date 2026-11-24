@@ -1,0 +1,50 @@
+
+{
+  "app": {
+    "title": "AgriVoice",
+    "subtitle": "AI-Powered Agricultural Assistance",
+    "brandCaption": "SMART FARMING PLATFORM",
+    "homeAriaLabel": "AgriVoice home",
+    "footer": "Empowering farmers through accessible technology."
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "weather": "Weather & Crop Advisory",
+    "soil": "Soil Health",
+    "voice": "AI Voice Assistance",
+    "login": "Farmer Login",
+    "toggle": "Toggle navigation"
+  },
+  "common": {
+    "language": "Select application language",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "landing": {
+    "eyebrow": "SMARTER FARMING STARTS HERE",
+    "heading": "Better farming decisions.",
+    "headingAccent": "Stronger harvests.",
+    "description": "Agricultural information, intelligent assistance and farm guidance together in one accessible platform.",
+    "primaryAction": "Explore Services",
+    "secondaryAction": "Farmer Login",
+    "trustOne": "Farmer-focused platform",
+    "trustTwo": "23-language architecture",
+    "featuresEyebrow": "YOUR FARMING COMPANION",
+    "featuresHeading": "Everything connected to your farm.",
+    "featuresDescription": "Explore the agricultural services provided through AgriVoice.",
+    "weatherTitle": "Weather & Crop Advisory",
+    "weatherDescription": "Access weather information and crop guidance through the existing weather integration.",
+    "soilTitle": "Soil Health & Input Verification",
+    "soilDescription": "Access soil health information and input verification through the existing integration.",
+    "voiceTitle": "AI Voice Assistance",
+    "voiceDescription": "Access the existing AI voice assistance integration.",
+    "loginEyebrow": "FARMER ACCESS",
+    "loginTitle": "Your farming journey starts here.",
+    "loginDescription": "Farmer authentication will use the team's existing secure login integration.",
+    "loginAction": "Farmer Login"
+  }
+}
