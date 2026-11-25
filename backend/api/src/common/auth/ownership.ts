@@ -1,12 +1,30 @@
 import { ForbiddenError, NotFoundError } from '../errors/index.js';
 import { db } from '../../database/db.js';
-import { farms, fields, farmerProfiles, soilReports, inputVerifications } from '../../database/schema/index.js';
+import {
+  users,
+  farms,
+  fields,
+  farmerProfiles,
+  buyerProfiles,
+  soilReports,
+  inputVerifications,
+} from '../../database/schema/index.js';
 import { eq, and } from 'drizzle-orm';
 
 /**
- * Resolves and verifies that the authenticated user has an active farmer profile.
+ * Resolves and verifies that the authenticated user has the 'farmer' role and an active farmer profile.
  */
 export async function assertFarmerContext(userId: string) {
+  const [user] = await db
+    .select({ id: users.id, role: users.role, status: users.status })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (user && user.role === 'buyer') {
+    throw new ForbiddenError('Farmer role required. Buyer accounts cannot access Farmer resources.');
+  }
+
   const [profile] = await db
     .select()
     .from(farmerProfiles)
@@ -15,6 +33,33 @@ export async function assertFarmerContext(userId: string) {
 
   if (!profile) {
     throw new ForbiddenError('Authenticated user does not have an active farmer profile');
+  }
+
+  return profile;
+}
+
+/**
+ * Resolves and verifies that the authenticated user has the 'buyer' role and an active buyer profile.
+ */
+export async function assertBuyerContext(userId: string) {
+  const [user] = await db
+    .select({ id: users.id, role: users.role, status: users.status })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (!user || user.role !== 'buyer') {
+    throw new ForbiddenError('Buyer role required to access Buyer Portal resources.');
+  }
+
+  const [profile] = await db
+    .select()
+    .from(buyerProfiles)
+    .where(eq(buyerProfiles.userId, userId))
+    .limit(1);
+
+  if (!profile) {
+    throw new ForbiddenError('Authenticated user does not have an active buyer profile');
   }
 
   return profile;

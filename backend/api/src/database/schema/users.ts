@@ -10,6 +10,7 @@ import { sql } from 'drizzle-orm';
 export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
   phone: varchar('phone', { length: 16 }).notNull().unique(), // E.164 normalized format (+91XXXXXXXXXX)
+  role: varchar('role', { length: 24 }).notNull().default('farmer'), // 'farmer' | 'buyer'
   status: varchar('status', { length: 32 }).notNull().default('active'), // 'pending_verification', 'active', 'suspended', 'deactivated'
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
@@ -17,4 +18,5 @@ export const users = pgTable('users', {
 }, (table) => [
   index('idx_users_status').on(table.status),
   check('chk_users_status', sql`${table.status} IN ('pending_verification', 'active', 'suspended', 'deactivated')`),
+  check('chk_users_role', sql`${table.role} IN ('farmer', 'buyer')`),
 ]);

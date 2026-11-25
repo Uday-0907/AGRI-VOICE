@@ -80,6 +80,19 @@ describe('parseLocationCoordinates()', () => {
     const result = parseLocationCoordinates('POINT(180.0 90.0)');
     expect(result).toEqual({ longitude: 180.0, latitude: 90.0 });
   });
+
+  it('parses PostGIS EWKB hex Point with SRID 4326', () => {
+    const buf = Buffer.alloc(25);
+    buf.writeUInt8(1, 0); // little-endian
+    buf.writeUInt32LE(0x20000001, 1); // EWKB Point with SRID
+    buf.writeUInt32LE(4326, 5);
+    buf.writeDoubleLE(80.648, 9);
+    buf.writeDoubleLE(16.5062, 17);
+    const result = parseLocationCoordinates(buf.toString('hex'));
+    expect(result).not.toBeNull();
+    expect(result!.longitude).toBeCloseTo(80.648, 6);
+    expect(result!.latitude).toBeCloseTo(16.5062, 6);
+  });
 });
 
 // ─── parseLocationCoordinates — additional validation tests ──────────────────

@@ -7,7 +7,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply, RouteGenericInterface } from 'fastify';
 import { Type } from '@sinclair/typebox';
 import { weatherService } from './services/weather.service.js';
-import { advisoryService } from './services/advisory.service.js';
+import { advisoryService, AdvisoryCategory } from './services/advisory.service.js';
 import { assertFarmOwnership, assertFieldOwnership, assertFarmerContext } from '../../common/auth/ownership.js';
 import { db } from '../../database/db.js';
 import { farms, weatherAlerts } from '../../database/schema/index.js';
@@ -301,8 +301,12 @@ export async function weatherRoutes(fastify: FastifyInstance) {
     return withAuth(request, reply, async (userId) => {
       const { farm } = await assertFarmOwnership(userId, request.params.farmId);
 
-      // Generate fresh advisories
-      const advisories = await advisoryService.generateAdvisories(farm.id);
+      // Generate any fresh advisories for today, then return active advisories (with optional category filter)
+      await advisoryService.generateAdvisories(farm.id);
+      const advisories = await advisoryService.getAdvisories(
+        farm.id,
+        request.query.category as AdvisoryCategory | undefined
+      );
 
       return {
         data: {

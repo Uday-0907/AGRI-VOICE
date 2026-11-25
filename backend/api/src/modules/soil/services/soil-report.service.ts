@@ -6,6 +6,7 @@ import { GovernmentSHCProvider } from '../providers/gov-shc.provider.js';
 import { MockSHCProvider } from '../providers/mock-shc.provider.js';
 import {
   SoilLookupRequest,
+  ManualSoilReportRequest,
   SoilReportResponse,
   SoilDashboardResponse,
   SoilReportListQuery
@@ -325,5 +326,127 @@ export class SoilReportService {
       fieldId: existing.fieldId || undefined,
       providerMode: existing.isDemo === 'true' ? 'demo' : 'auto',
     });
+  }
+
+  /**
+   * Persists a farmer-submitted soil test record with ICAR-aligned nutrient ratings & crop recommendations.
+   */
+  async createManualReport(farmerId: string, req: ManualSoilReportRequest): Promise<SoilReportResponse> {
+    if (req.farmId) {
+      const [farm] = await db
+        .select()
+        .from(farms)
+        .where(and(eq(farms.id, req.farmId), eq(farms.farmerId, farmerId)))
+        .limit(1);
+      if (!farm) {
+        throw new ForbiddenError(`Farm ${req.farmId} does not belong to the authenticated farmer.`);
+      }
+    }
+
+    const ratings: Record<string, string> = {};
+    const recommendations: Array<{ crop: string; fertilizer: string; dosageKgPerAcre: string; note: string }> = [];
+
+    if (typeof req.ph === 'number') {
+      ratings.ph = req.ph < 6.0 ? 'ACIDIC' : req.ph > 8.0 ? 'ALKALINE' : 'OPTIMAL';
+      if (req.ph < 6.0) {
+        recommendations.push({
+          crop: 'General Field Crops',
+          fertilizer: 'Agricultural Lime',
+          dosageKgPerAcre: '200 kg/acre',
+          note: 'Soil pH is acidic; apply lime prior to sowing to improve nutrient uptake.',
+        });
+      } else if (req.ph > 8.2) {
+        recommendations.push({
+          crop: 'General Field Crops',
+          fertilizer: 'Gypsum',
+          dosageKgPerAcre: '250 kg/acre',
+          note: 'Soil pH is alkaline; gypsum and organic matter help buffer root-zone pH.',
+        });
+      }
+    }
+
+    if (typeof req.organicCarbon === 'number') {
+      ratings.organicCarbon = req.organicCarbon < 0.5 ? 'LOW' : req.organicCarbon > 0.75 ? 'HIGH' : 'MEDIUM';
+    }
+    if (typeof req.nitrogen === 'number') {
+      ratings.nitrogen = req.nitrogen < 280 ? 'LOW' : req.nitrogen > 560 ? 'HIGH' : 'MEDIUM';
+      if (req.nitrogen < 280) {
+        recommendations.push({
+          crop: 'Paddy / Maize / Cotton',
+          fertilizer: 'Urea (46% N)',
+          dosageKgPerAcre: '45 kg/acre',
+          note: 'Nitrogen is low; apply in 2-3 split doses aligned with irrigation.',
+        });
+      }
+    }
+    if (typeof req.phosphorus === 'number') {
+      ratings.phosphorus = req.phosphorus < 11 ? 'LOW' : req.phosphorus > 25 ? 'HIGH' : 'MEDIUM';
+      if (req.phosphorus < 11) {
+        recommendations.push({
+          crop: 'Pulses / Cereals',
+          fertilizer: 'DAP (18-46-0) or SSP',
+          dosageKgPerAcre: '30 kg/acre',
+          note: 'Phosphorus is low; incorporate as basal dose near root zone.',
+        });
+      }
+    }
+    if (typeof req.potassium === 'number') {
+      ratings.potassium = req.potassium < 110 ? 'LOW' : req.potassium > 280 ? 'HIGH' : 'MEDIUM';
+      if (req.potassium < 110) {
+        recommendations.push({
+          crop: 'Horticulture / Paddy',
+          fertilizer: 'Muriate of Potash (MOP)',
+          dosageKgPerAcre: '20 kg/acre',
+          note: 'Potassium is low; improves grain filling and drought tolerance.',
+        });
+      }
+    }
+    if (typeof req.zinc === 'number') {
+      ratings.zinc = req.zinc < 0.6 ? 'DEFICIENT' : 'SUFFICIENT';
+      if (req.zinc < 0.6) {
+        recommendations.push({
+          crop: 'Paddy / Wheat',
+          fertilizer: 'Zinc Sulphate (21%)',
+          dosageKgPerAcre: '10 kg/acre',
+          note: 'Zinc deficiency detected; apply Zinc Sulphate as soil basal application.',
+        });
+      }
+    }
+
+    const reportId = req.cardId?.trim() || `FARMER-LAB-${Date.now()}`;
+    const [inserted] = await db
+      .insert(soilReports)
+      .values({
+        farmerId,
+        farmId: req.farmId || null,
+        fieldId: req.fieldId || null,
+        cardId: req.cardId?.trim() || null,
+        reportId,
+        source: 'farmer_submitted',
+        sourceAuthority: 'Farmer-Submitted Laboratory Report',
+        testingDate: req.testingDate ? new Date(req.testingDate) : new Date(),
+        reportDate: new Date(),
+        state: req.state || null,
+        district: req.district || null,
+        village: req.village || null,
+        soilType: req.soilType || null,
+        ph: req.ph !== undefined ? req.ph.toString() : null,
+        ec: req.ec !== undefined ? req.ec.toString() : null,
+        organicCarbon: req.organicCarbon !== undefined ? req.organicCarbon.toString() : null,
+        nitrogen: req.nitrogen !== undefined ? req.nitrogen.toString() : null,
+        phosphorus: req.phosphorus !== undefined ? req.phosphorus.toString() : null,
+        potassium: req.potassium !== undefined ? req.potassium.toString() : null,
+        sulphur: req.sulphur !== undefined ? req.sulphur.toString() : null,
+        zinc: req.zinc !== undefined ? req.zinc.toString() : null,
+        iron: req.iron !== undefined ? req.iron.toString() : null,
+        boron: req.boron !== undefined ? req.boron.toString() : null,
+        nutrientRatings: ratings,
+        recommendations,
+        status: 'available',
+        isDemo: 'false',
+      })
+      .returning();
+
+    return this.formatReport(inserted);
   }
 }

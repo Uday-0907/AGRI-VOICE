@@ -5,13 +5,19 @@ import { MockSHCProvider } from '../../../src/modules/soil/providers/mock-shc.pr
 describe('Soil Health Card Provider Adapters', () => {
   describe('GovernmentSHCProvider', () => {
     it('should return provider_unavailable when API key is missing or placeholder', async () => {
-      const provider = new GovernmentSHCProvider();
-      const result = await provider.lookupCard('AP-GNT-109283');
+      const origKey = process.env.GOV_DATA_API_KEY;
+      process.env.GOV_DATA_API_KEY = '';
+      try {
+        const provider = new GovernmentSHCProvider();
+        const result = await provider.lookupCard('AP-GNT-109283');
 
-      expect(result.status).toBe('provider_unavailable');
-      expect(result.cardId).toBe('AP-GNT-109283');
-      expect(result.isDemo).toBe(false);
-      expect(result.error).toContain('Government Soil Health Card API credentials');
+        expect(result.status).toBe('provider_unavailable');
+        expect(result.cardId).toBe('AP-GNT-109283');
+        expect(result.isDemo).toBe(false);
+        expect(result.error).toContain('Government Soil Health Card API credentials');
+      } finally {
+        process.env.GOV_DATA_API_KEY = origKey;
+      }
     });
   });
 

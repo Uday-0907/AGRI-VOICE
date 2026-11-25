@@ -1,0 +1,44 @@
+:root {
+  /* Brand & Surface Palette */
+  --av-bg: #f7f9f5;
+  --av-surface: #ffffff;
+  --av-surface-alt: #f1f5ef;
+  --av-green: #237b4b;
+  --av-green-hover: #1c653d;
+  --av-dark-green: #174b32;
+  --av-footer-bg: #173e2c;
+  --av-light-green: #edf5e9;
+  --av-accent-green: #39915b;
+  --av-border: #dce7db;
+  --av-border-soft: #e6ede4;
+
+  /* Typography */
+  --av-font-sans: "Noto Sans", "Noto Sans Devanagari", "Noto Sans Telugu", "Noto Sans Tamil", "Noto Nastaliq Urdu", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  --av-text: #193b2b;
+  --av-text-secondary: #43574b;
+  --av-muted: #64746b;
+
+  /* Semantic Status Colors */
+  --av-success-bg: #e7f6ec;
+  --av-success-text: #166534;
+  --av-success-border: #bbf7d0;
+  --av-warning-bg: #fef7e6;
+  --av-warning-text: #92400e;
+  --av-warning-border: #fde68a;
+  --av-danger-bg: #fef2f2;
+  --av-danger-text: #991b1b;
+  --av-danger-border: #fecaca;
+  --av-info-bg: #eff6ff;
+  --av-info-text: #1e40af;
+  --av-info-border: #bfdbfe;
+
+  /* Spacing, Radii, Shadows */
+  --av-radius-sm: 8px;
+  --av-radius-md: 12px;
+  --av-radius-lg: 16px;
+  --av-radius-xl: 20px;
+  --av-shadow-sm: 0 4px 14px rgba(23, 75, 50, 0.06);
+  --av-shadow-md: 0 12px 32px rgba(23, 75, 50, 0.1);
+  --av-shadow-lg: 0 18px 48px rgba(23, 75, 50, 0.16);
+  --av-container-max: 1180px;
+}

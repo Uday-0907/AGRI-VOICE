@@ -432,6 +432,7 @@ describe('Pillar 3: Weather & Crop Advisory HTTP APIs', () => {
         profile: mockFarmerProfile,
       });
       vi.spyOn(AdvisoryService.prototype, 'generateAdvisories').mockResolvedValueOnce(mockAdvisories);
+      vi.spyOn(AdvisoryService.prototype, 'getAdvisories').mockResolvedValueOnce(mockAdvisories);
 
       const response = await app.inject({
         method: 'GET',
@@ -445,6 +446,24 @@ describe('Pillar 3: Weather & Crop Advisory HTTP APIs', () => {
       expect(body.data.advisories).toHaveLength(1);
       expect(body.data.advisories[0].category).toBe('irrigation');
       expect(body.data.advisories[0].severity).toBe('warning');
+    });
+
+    it('GET /weather/advisory/farms/:farmId?category=irrigation passes category filter', async () => {
+      vi.spyOn(ownership, 'assertFarmOwnership').mockResolvedValue({
+        farm: mockFarm as any,
+        profile: mockFarmerProfile,
+      });
+      vi.spyOn(AdvisoryService.prototype, 'generateAdvisories').mockResolvedValueOnce([]);
+      const getSpy = vi.spyOn(AdvisoryService.prototype, 'getAdvisories').mockResolvedValueOnce(mockAdvisories);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/weather/advisory/farms/${mockFarm.id}?category=irrigation`,
+        headers: { authorization: `Bearer ${testToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(getSpy).toHaveBeenCalledWith(mockFarm.id, 'irrigation');
     });
 
     it("GET /weather/advisory/farms/:farmId → 404 for another farmer's farm", async () => {

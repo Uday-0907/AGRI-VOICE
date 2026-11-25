@@ -69,6 +69,12 @@ export interface LocationContext {
   longitude: number;
 }
 
+function toNum(val: unknown): number | null {
+  if (val === null || val === undefined || val === '') return null;
+  const n = Number(val);
+  return Number.isFinite(n) ? n : null;
+}
+
 export function parseLocationCoordinates(location: string | { x: number; y: number } | null | undefined): { latitude: number; longitude: number } | null {
   if (!location) return null;
 
@@ -92,6 +98,26 @@ export function parseLocationCoordinates(location: string | { x: number; y: numb
       }
       const lon = parseFloat(lonRaw);
       const lat = parseFloat(latRaw);
+      if (!Number.isFinite(lon) || !Number.isFinite(lat)) return null;
+      if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
+      return { longitude: lon, latitude: lat };
+    }
+
+    // Parse PostGIS WKB / EWKB hex string returned by node-postgres for geometry(Point, 4326)
+    const trimmed = location.trim();
+    if (/^[0-9a-fA-F]+$/.test(trimmed) && trimmed.length >= 42 && trimmed.length % 2 === 0) {
+      const buf = Buffer.from(trimmed, 'hex');
+      const byteOrder = buf.readUInt8(0);
+      if (byteOrder !== 0 && byteOrder !== 1) return null;
+      const littleEndian = byteOrder === 1;
+      const geomType = littleEndian ? buf.readUInt32LE(1) : buf.readUInt32BE(1);
+      const hasSrid = (geomType & 0x20000000) !== 0;
+      const baseType = geomType & 0x0fffffff;
+      if (baseType !== 1) return null;
+      const coordOffset = hasSrid ? 9 : 5;
+      if (buf.length < coordOffset + 16) return null;
+      const lon = littleEndian ? buf.readDoubleLE(coordOffset) : buf.readDoubleBE(coordOffset);
+      const lat = littleEndian ? buf.readDoubleLE(coordOffset + 8) : buf.readDoubleBE(coordOffset + 8);
       if (!Number.isFinite(lon) || !Number.isFinite(lat)) return null;
       if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
       return { longitude: lon, latitude: lat };
@@ -507,18 +533,18 @@ export class WeatherService {
       provider: 'open-meteo',
       observedAt: obs.observedAt,
       fetchedAt: obs.fetchedAt,
-      temperature: obs.temperature,
-      temperatureMin: obs.temperatureMin,
-      temperatureMax: obs.temperatureMax,
-      humidity: obs.humidity,
-      windSpeed: obs.windSpeed,
+      temperature: toNum(obs.temperature),
+      temperatureMin: toNum(obs.temperatureMin),
+      temperatureMax: toNum(obs.temperatureMax),
+      humidity: toNum(obs.humidity),
+      windSpeed: toNum(obs.windSpeed),
       windDirection: obs.windDirection,
-      windGusts: obs.windGusts,
-      pressure: obs.pressure,
-      cloudCover: obs.cloudCover,
-      rainfall: obs.rainfall,
-      rainfallProbability: obs.rainfallProbability,
-      weatherCode: obs.weatherCode,
+      windGusts: toNum(obs.windGusts),
+      pressure: toNum(obs.pressure),
+      cloudCover: toNum(obs.cloudCover),
+      rainfall: toNum(obs.rainfall),
+      rainfallProbability: toNum(obs.rainfallProbability),
+      weatherCode: obs.weatherCode !== null && obs.weatherCode !== undefined ? Number(obs.weatherCode) : null,
       weatherDescription: obs.weatherDescription,
     };
   }
@@ -533,19 +559,19 @@ export class WeatherService {
       forecastType: fcst.forecastType,
       issueAt: fcst.issueAt,
       validAt: fcst.validAt,
-      temperatureMin: fcst.temperatureMin,
-      temperatureMax: fcst.temperatureMax,
-      humidity: fcst.humidity,
-      rainfall: fcst.rainfall,
-      rainfallProbability: fcst.rainfallProbability,
-      precipitationSum: fcst.precipitationSum,
-      windSpeed: fcst.windSpeed,
+      temperatureMin: toNum(fcst.temperatureMin),
+      temperatureMax: toNum(fcst.temperatureMax),
+      humidity: toNum(fcst.humidity),
+      rainfall: toNum(fcst.rainfall),
+      rainfallProbability: toNum(fcst.rainfallProbability),
+      precipitationSum: toNum(fcst.precipitationSum),
+      windSpeed: toNum(fcst.windSpeed),
       windDirection: fcst.windDirection,
-      cloudCover: fcst.cloudCover,
-      weatherCode: fcst.weatherCode,
+      cloudCover: toNum(fcst.cloudCover),
+      weatherCode: fcst.weatherCode !== null && fcst.weatherCode !== undefined ? Number(fcst.weatherCode) : null,
       weatherDescription: fcst.weatherDescription,
-      sunshineDuration: fcst.sunshineDuration,
-      uvIndex: fcst.uvIndex,
+      sunshineDuration: toNum(fcst.sunshineDuration),
+      uvIndex: toNum(fcst.uvIndex),
     };
   }
 }

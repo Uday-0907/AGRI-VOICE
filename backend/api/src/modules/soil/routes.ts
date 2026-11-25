@@ -6,6 +6,8 @@ import { assertFarmerContext } from '../../common/auth/ownership.js';
 import {
   SoilLookupRequestSchema,
   SoilLookupRequest,
+  ManualSoilReportRequestSchema,
+  ManualSoilReportRequest,
   SoilReportListQuerySchema,
   SoilReportListQuery,
   InputVerificationRequestSchema,
@@ -74,6 +76,26 @@ export const soilRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) =
     const user = (request as any).user;
     const profile = await assertFarmerContext(user.id);
     const report = await soilReportService.lookupAndSaveCard(profile.id, request.body);
+    reply.status(201);
+    return { data: report };
+  });
+
+  /**
+   * POST /soil/reports
+   * Submits a farmer-entered soil laboratory report and computes ICAR-aligned nutrient ratings.
+   */
+  fastify.post<{ Body: ManualSoilReportRequest }>('/reports', {
+    schema: {
+      tags: ['Soil Health'],
+      summary: 'Submit Farmer Soil Test Report',
+      description: 'Persists a farmer-submitted soil test report with computed nutrient ratings and fertilizer guidance.',
+      security: [{ bearerAuth: [] }],
+      body: ManualSoilReportRequestSchema,
+    },
+  }, async (request, reply) => {
+    const user = (request as any).user;
+    const profile = await assertFarmerContext(user.id);
+    const report = await soilReportService.createManualReport(profile.id, request.body);
     reply.status(201);
     return { data: report };
   });

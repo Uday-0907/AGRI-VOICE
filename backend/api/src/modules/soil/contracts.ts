@@ -98,6 +98,31 @@ export const SoilLookupRequestSchema = Type.Object({
 export type SoilLookupRequest = Static<typeof SoilLookupRequestSchema>;
 
 /**
+ * Farmer-Submitted Soil Test Report Request
+ */
+export const ManualSoilReportRequestSchema = Type.Object({
+  cardId: Type.Optional(Type.String({ minLength: 2, maxLength: 64 })),
+  farmId: Type.Optional(Type.String({ format: 'uuid' })),
+  fieldId: Type.Optional(Type.String({ format: 'uuid' })),
+  soilType: Type.Optional(Type.String({ minLength: 2, maxLength: 64 })),
+  testingDate: Type.Optional(Type.String()),
+  state: Type.Optional(Type.String({ maxLength: 64 })),
+  district: Type.Optional(Type.String({ maxLength: 64 })),
+  village: Type.Optional(Type.String({ maxLength: 64 })),
+  ph: Type.Optional(Type.Number({ minimum: 0, maximum: 14 })),
+  ec: Type.Optional(Type.Number({ minimum: 0, maximum: 50 })),
+  organicCarbon: Type.Optional(Type.Number({ minimum: 0, maximum: 10 })),
+  nitrogen: Type.Optional(Type.Number({ minimum: 0, maximum: 2000 })),
+  phosphorus: Type.Optional(Type.Number({ minimum: 0, maximum: 500 })),
+  potassium: Type.Optional(Type.Number({ minimum: 0, maximum: 2000 })),
+  sulphur: Type.Optional(Type.Number({ minimum: 0, maximum: 500 })),
+  zinc: Type.Optional(Type.Number({ minimum: 0, maximum: 100 })),
+  iron: Type.Optional(Type.Number({ minimum: 0, maximum: 500 })),
+  boron: Type.Optional(Type.Number({ minimum: 0, maximum: 50 })),
+});
+export type ManualSoilReportRequest = Static<typeof ManualSoilReportRequestSchema>;
+
+/**
  * Soil Report List Query
  */
 export const SoilReportListQuerySchema = Type.Object({

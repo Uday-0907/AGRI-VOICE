@@ -22,6 +22,27 @@
       "when": 1795456350071,
       "tag": "0002_pillar_6_soil_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795522771124,
+      "tag": "0003_yummy_leech",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795594191499,
+      "tag": "0004_minor_red_ghost",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795611312295,
+      "tag": "0005_slow_meggan",
+      "breakpoints": true
     }
   ]
 }
